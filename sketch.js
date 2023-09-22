@@ -15,11 +15,20 @@ let file;
 let x = 0;
 let y = 0;
 let steps = 0;
+
 let factor = 31;
+let factorInput;
+let factorText;
 
 function setup() {
   input = createFileInput(handleFile);
-  input.position(0, 0);
+  input.position(5, 5);
+
+  factorText = createSpan("Factor: ");
+  factorInput = createInput(31, "number");
+
+  factorText.position(5, 5 + input.height + 5);
+  factorInput.position(5 + factorText.width + 10, 5 + input.height + 5);
 
   loop();
   // noLoop();
@@ -45,7 +54,13 @@ function draw() {
       if (width > 0 && height > 0) {
         steps = width;
 
-        input.position(0, height + 5);
+        input.position(5, height + 5);
+        // factorInput.position(5, height + 5 + input.height + 5);
+        factorText.position(5, height + 5 + input.height + 5);
+        factorInput.position(5 + factorText.width + 10, height + 5 + input.height + 5);
+
+        factor = factorInput.value();
+
         loadPixels();
 
         img.loadPixels(pixels);
@@ -69,6 +84,10 @@ function draw() {
         console.log(img);
 
         process = true;
+        x = 0;
+        y = 0;
+      } else {
+        alert("Try choosing image again");
       }
     }
 
@@ -123,5 +142,8 @@ function handleFile(f) {
 
     file = f;
   }
-  
 }
+
+// function factorHandle() {
+//   factor = this.value();
+// }
