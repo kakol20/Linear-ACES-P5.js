@@ -4,29 +4,25 @@ const ColorSpace = {
 }
 
 class ImgWrap {
-  constructor(path, colorSpace) {
-    this.img = loadImage(path);
+  constructor(w, h, colorSpace) {
+    this.img = createImage(w, h);
     
-    this.width = 0;
-    this.height = 0;
-    this.size = 0;
-    
-    this.data = [0];
-    this.colorSpace = colorSpace;
-  }
-  
-  loadPixels() {
-    this.img.loadPixels();
-    
-    this.width = this.img.width;
-    this.height = this.img.height;
+    this.width = w;
+    this.height = h;
     this.size = this.width * this.height * 4;
     
     this.data = new Array(this.size);
-    
-    for (let i in this.img.pixels) {
-      this.data[i] = this.img.pixels[i] / 255;
-      
+    this.colorSpace = colorSpace;
+  }
+  
+  loadPixels(pixels) {
+    this.img.loadPixels();
+
+    // this.data = pixels;
+
+    for (let i in pixels) {
+      this.data[i] = pixels[i] / 255;
+
       if (this.colorSpace == ColorSpace.sRGB) {
         this.data[i] = sRGB.toLinear(this.data[i]);
       }
@@ -37,6 +33,14 @@ class ImgWrap {
   
   index(x, y) {
     return (x + y * this.width) * 4;
+  }
+
+  indexToXY(index) {
+    let pixelIndex = Math.floor(index / 4);
+    let x = pixelIndex % this.width;
+    let y = pixelIndex / this.width;
+
+    return [x, y];
   }
   
   toBW() {

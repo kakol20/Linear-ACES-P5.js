@@ -1,143 +1,149 @@
-let img = 0;
-
 function preload() {
-  img = new ImgWrap("assets/cornellBox_bars.png", ColorSpace.sRGB);
 }
 
 function GetIndex(x, y, imgWidth) {
   return (x + y * imgWidth) * 4;
 }
 
+let imgInput = false;
+let process = false;
+
+let input;
+let img;
+let file;
+
 let x = 0;
 let y = 0;
-let pixelData = [0];
-
-const factor = 32;
 let steps = 0;
 
-const nxtAlpha = 0.1;
-const lineCol = [1, 0, 0];
-
-const exposure = 0.534592;
+let factor = 31;
+let factorInput;
+let factorText;
 
 function setup() {
-  img.loadPixels();
+  input = createFileInput(handleFile);
+  input.position(5, 5);
 
-  // img.toBW();
+  factorText = createSpan("Factor: ");
+  factorInput = createInput(31, "number");
 
-  const extraHeight = 32 + 32;
-
-  createCanvas(img.width * 2, img.height + extraHeight);
-
-  console.log(windowHeight);
-
-  // frameRate(30);
-
-  steps = width / 2;
-  // console.log(steps);
-
-  background(0);
-
-  pixelData = new Array(width * height * 4);
-
-  loadPixels();
-
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
-      const index = GetIndex(x, y, width);
-      if (y < height - extraHeight) {
-        const imgIndex = GetIndex(x % img.width, y % img.height, img.width);
-
-        for (let i = 0; i < 4; i++) {
-          if (i == 3) {
-            pixelData[index + i] = 1;
-          } else {
-            // pixelData[index + i] = ((x % 255) + (y % 255)) / 255;
-            // pixelData[index + i] = img.pixels[imgIndex + i] / 255;
-            pixelData[index + i] = img.data[imgIndex + i];
-          }
-
-          // pixelData[index + i] *= Math.pow(2, ((3 * (x % steps)) / steps) - 0);
-
-          let out = sRGB.toSRGB(pixelData[index + i]);
-          out = out > 1 ? 1 : out;
-
-          pixels[index + i] = Dither.bayerSingle(x, y, out, factor) * 255;
-        }
-      } else if (y < height - (1 * extraHeight) / 2) {
-        for (let i = 0; i < 3; i++) {
-          pixelData[index + i] = i < 3 ? (x % steps) / steps : 1;
-          // pixelData[index + i] = 3 * (x % steps);
-          // pixelData[index + i] = sRGB.toLinear(pixelData[index + i]);
-
-          let out = pixelData[index + i];
-          out = sRGB.toSRGB(out);
-          out = out > 1 ? 1 : out;
-
-          pixels[index + i] = Dither.bayerSingle(x, y, out, factor) * 255;
-        }
-      } else {
-        let hsv = HSV.toRGB((x % steps) / steps, 1, 1);
-        for (let i = 0; i < 3; i++) {
-          pixelData[index + i] = hsv[i];
-          pixelData[index + i] = sRGB.toLinear(pixelData[index + i]);
-
-          let out = pixelData[index + i];
-          out = sRGB.toSRGB(out);
-          out = out > 1 ? 1 : out;
-
-          pixels[index + i] = Dither.bayerSingle(x, y, out, factor) * 255;
-        }
-      }
-    }
-  }
-  updatePixels();
-
-  x = width / 2;
+  factorText.position(5, 5 + input.height + 5);
+  factorInput.position(5 + factorText.width + 10, 5 + input.height + 5);
 
   loop();
+  // noLoop();
+
+  createCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
-  let stepCount = 0;
+  if (imgInput === true) {
+    console.log("Image in");
+    // console.log(file);
 
-  loadPixels();
-  for (let stepCount = 0; stepCount < steps; stepCount++) {
-    const index = GetIndex(x, y, width);
-    const nxtIndex = GetIndex(x, y + 1, width);
+    if (file.type === "image") {
+      resizeCanvas(fileImg.width, fileImg.height);
 
-    let col = LinearACES.toneMap(
-      pixelData[index],
-      pixelData[index + 1],
-      pixelData[index + 2]
-    );
+      img = new ImgWrap(width, height, ColorSpace.sRGB);
 
-    for (let i = 0; i < 3; i++) {
-      col[i] = sRGB.toSRGB(col[i]);
-      col[i] = Dither.bayerSingle(x, y, col[i], factor);
+      background(28);
+      image(fileImg, 0, 0);
 
-      pixels[index + i] = col[i] * 255;
+      // loadPixels();
 
-      if (y + 1 < height) {
-        let lineC = lineCol[i] * nxtAlpha;
-        lineC += sRGB.toSRGB(pixelData[index + i]) * (1 - nxtAlpha);
+      if (width > 0 && height > 0) {
+        steps = width;
 
-        pixels[nxtIndex + i] = lineC * 255;
+        input.position(5, height + 5);
+        // factorInput.position(5, height + 5 + input.height + 5);
+        factorText.position(5, height + 5 + input.height + 5);
+        factorInput.position(5 + factorText.width + 10, height + 5 + input.height + 5);
+
+        factor = factorInput.value();
+
+        loadPixels();
+
+        img.loadPixels(pixels);
+
+        for (let x_i = 0; x_i < width; x_i++) {
+          for (let y_i = 0; y_i < height; y_i++) {
+            const index = img.index(x_i, y_i);
+
+            for (let i = 0; i < 3; i++) {
+              let data = img.data[index + i];
+              data = sRGB.toSRGB(data);
+              data = Dither.bayerSingle(x_i, y_i, data, factor);
+
+              pixels[index + i] = data * 255;
+            }
+          }
+        }
+
+        updatePixels();
+
+        console.log(img);
+
+        process = true;
+        x = 0;
+        y = 0;
+      } else {
+        alert("Try choosing image again");
       }
     }
 
-    x++;
-    let xStop = steps;
-    // xStop /= 2.0;
-    if (x >= xStop) {
-      y++;
-      x = 0;
+    imgInput = false;
+  } else if (process && !imgInput) {
+    loadPixels();
+    for (let step = 0; step < steps; step++) {
+      const index = GetIndex(x, y, width);
+
+      let col = LinearACES.ToneMap(
+        img.data[index + 0],
+        img.data[index + 1],
+        img.data[index + 2]
+      );
+
+      for (let i = 0; i < 3; i++) {
+        col[i] = sRGB.toSRGB(col[i]);
+        col[i] = Dither.bayerSingle(x, y, col[i], factor);
+
+        pixels[index + i] = col[i] * 255;
+      }
+
+      x++;
+      if (x >= width) {
+        x = 0;
+        y++;
+      }
+
+      if (y >= height) {
+        process = false;
+        break;
+      }
     }
-    if (y >= height) {
-      noLoop();
-      console.log("Done");
-      break;
-    }
+
+    updatePixels();
   }
-  updatePixels();
 }
+
+function handleFile(f) {
+  if (f.type == 'image') {
+    imgInput = true;
+    process = false
+    // console.log(file);
+
+    file = f;
+    fileImg = createImg(file.data, '');
+
+    // console.log(fileImg);
+    // console.log(fileImg.width);
+
+    fileImg.hide();
+
+    file = f;
+  }
+}
+
+// function factorHandle() {
+//   factor = this.value();
+// }
