@@ -34,6 +34,14 @@ class ImgWrap {
   index(x, y) {
     return (x + y * this.width) * 4;
   }
+
+  indexToXY(index) {
+    let pixelIndex = Math.floor(index / 4);
+    let x = pixelIndex % this.width;
+    let y = pixelIndex / this.width;
+
+    return [x, y];
+  }
   
   toBW() {
     for (let x = 0; x < this.width; x++) {

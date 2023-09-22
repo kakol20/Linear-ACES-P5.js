@@ -35,7 +35,7 @@ const LinearACES = (function() {
   }
   
   return {
-    toneMap: function(r, g, b) {
+    ToneMap: function(r, g, b) {
       
       const inputM = inputMat(r, g, b);
       
