@@ -6,6 +6,7 @@ function GetIndex(x, y, imgWidth) {
 }
 
 let imgInput = false;
+let process = false;
 
 let input;
 let img;
@@ -29,20 +30,39 @@ function draw() {
     if (file.type === "image") {
       resizeCanvas(fileImg.width, fileImg.height);
 
+      img = new ImgWrap(width, height, ColorSpace.sRGB);
 
       background(28);
       image(fileImg, 0, 0);
+
+      // loadPixels();
+
+      if (width > 0 && height > 0) {
+        loadPixels();
+
+        img.loadPixels(pixels);
+
+        updatePixels();
+
+        console.log(img);
+      }
+
+      
     } else {
       fileImg = null;
     }
 
+    process = true;
     imgInput = false;
+  } else if (process && !imgInput) {
+    
   }
 }
 
 function handleFile(f) {
 
   imgInput = true;
+  process = false
   // console.log(file);
 
   file = f;
