@@ -38,20 +38,12 @@ function setup() {
 
 function draw() {
     if (imgInput === true) {
-        console.log("Image in");
         // console.log(file);
 
         if (imgInput) {
-            // resizeCanvas(fileImg.width, fileImg.height);
-
-            // img = new ImgWrap(width, height, ColorSpace.sRGB);
-
-            // background(28);
-            // image(fileImg, 0, 0);
-
-            // loadPixels();
-
             if (width > 0 && height > 0) {
+                console.log("----- IMAGE IN -----");
+
                 steps = width;
 
                 input.position(5, height + 5);
@@ -76,12 +68,12 @@ function draw() {
 
                             pixels[index + i] = data * 255;
                         }
+
+                        // pixels[index + 3] = img.data[index + 3] * 255;
                     }
                 }
 
                 updatePixels();
-
-                console.log(img);
 
                 process = true;
                 x = 0;
@@ -117,7 +109,12 @@ function draw() {
             }
 
             if (y >= height) {
+                console.log("----- PROCESS -----");
+
                 process = false;
+
+                console.log(pixels);
+                console.log(img);
                 break;
             }
         }
@@ -140,8 +137,12 @@ function imgReadSuccess() {
 
     img = new ImgWrap(width, height, ColorSpace.sRGB);
 
-    background(28);
+    background(28, 28, 28, 0);
     image(fileImg, 0, 0);
+
+    loadPixels();
+    console.log(pixels);
+    updatePixels();
 
     imgInput = true;
     process = false;
