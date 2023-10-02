@@ -5,7 +5,7 @@ const ColorSpace = {
 
 class ImgWrap {
     constructor(w, h, colorSpace) {
-        this.img = createImage(w, h);
+        // this.img = createImage(w, h);
 
         this.width = w;
         this.height = h;
@@ -16,20 +16,20 @@ class ImgWrap {
     }
 
     loadPixels(pixels) {
-        this.img.loadPixels();
-
-        // this.data = pixels;
+        // this.img.loadPixels();
 
         for (let i in pixels) {
-            this.data[i] = pixels[i] / 255;
-            if (this.colorSpace == ColorSpace.sRGB) {
-                this.data[i] = sRGB.toLinear(this.data[i]);
-            }
+            this.data[i] = (pixels[i] >>> 0) / 255;
 
+            if ((i + 1) % 4 >= 0) {
+                if (this.colorSpace == ColorSpace.sRGB) {
+                    this.data[i] = sRGB.toLinear(this.data[i]);
+                }
+            }
             // this.img.pixels[i] = pixels[i];
         }
 
-        this.img.updatePixels();
+        // this.img.updatePixels();
     }
 
     index(x, y) {
