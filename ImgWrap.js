@@ -21,7 +21,7 @@ class ImgWrap {
         for (let i in pixels) {
             this.data[i] = (pixels[i] >>> 0) / 255;
 
-            if ((i + 1) % 4 >= 0) {
+            if ((i + 1) % 4 > 0) {
                 if (this.colorSpace == ColorSpace.sRGB) {
                     this.data[i] = sRGB.toLinear(this.data[i]);
                 }

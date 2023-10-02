@@ -69,7 +69,7 @@ function draw() {
                             pixels[index + i] = data * 255;
                         }
 
-                        // pixels[index + 3] = img.data[index + 3] * 255;
+                        pixels[index + 3] = Dither.bayerSingle(x_i, y_i, img.data[index + 3], factor) * 255;
                     }
                 }
 
@@ -96,11 +96,16 @@ function draw() {
             );
 
             for (let i = 0; i < 3; i++) {
-                col[i] = sRGB.toSRGB(col[i]);
+                if (i < 3) {
+                    col[i] = sRGB.toSRGB(col[i]);
+                }
+
                 col[i] = Dither.bayerSingle(x, y, col[i], factor);
 
                 pixels[index + i] = col[i] * 255;
             }
+
+            pixels[index + 3] = Dither.bayerSingle(x, y, img.data[index + 3], factor) * 255;
 
             x++;
             if (x >= width) {
