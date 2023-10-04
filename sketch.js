@@ -3,8 +3,8 @@ let process = false;
 
 let input;
 let img;
-var fileImg;
-// let file;
+let fileImg;
+let imgIn;
 
 let x = 0;
 let y = 0;
@@ -14,6 +14,8 @@ let factor = 31;
 let factorInput;
 let factorText;
 
+let restartButton;
+
 function preload() {
     input = createFileInput(handleFile);
     input.position(5, 5);
@@ -21,8 +23,16 @@ function preload() {
     factorText = createSpan("Factor: ");
     factorInput = createInput(31, "number");
 
-    factorText.position(5, 5 + input.height + 5);
-    factorInput.position(5 + factorText.width + 10, 5 + input.height + 5);
+    let domHeight = 5 + input.height + 5;
+
+    factorText.position(5, domHeight);
+    factorInput.position(5 + factorText.width + 10, domHeight);
+
+    domHeight += factorInput.height + 5;
+
+    restartButton = createButton("Restart");
+    restartButton.position(5, domHeight);
+    restartButton.mousePressed(restartChange);
 }
 
 function GetIndex(x, y, imgWidth) {
@@ -40,47 +50,49 @@ function draw() {
     if (imgInput === true) {
         // console.log(file);
 
-        if (imgInput) {
-            if (width > 0 && height > 0) {
-                console.log("----- IMAGE IN -----");
+        if (imgIn) {
+            console.log("----- IMAGE IN -----");
 
-                steps = width;
+            steps = width;
 
-                input.position(5, height + 5);
-                // factorInput.position(5, height + 5 + input.height + 5);
-                factorText.position(5, height + 5 + input.height + 5);
-                factorInput.position(5 + factorText.width + 10, height + 5 + input.height + 5);
+            let domHeight = height + 5;
 
-                factor = factorInput.value();
+            input.position(5, domHeight);
 
-                loadPixels();
+            domHeight += input.height + 5;
 
-                img.loadPixels(pixels);
+            factorText.position(5, domHeight);
+            factorInput.position(5 + factorText.width + 10, domHeight);
 
-                for (let x_i = 0; x_i < width; x_i++) {
-                    for (let y_i = 0; y_i < height; y_i++) {
-                        const index = img.index(x_i, y_i);
+            domHeight += factorInput.height + 5;
+            restartButton.position(5, domHeight);
 
-                        for (let i = 0; i < 3; i++) {
-                            let data = img.data[index + i];
-                            data = sRGB.toSRGB(data);
-                            data = Dither.bayerSingle(x_i, y_i, data, factor);
+            factor = factorInput.value();
 
-                            pixels[index + i] = data * 255;
-                        }
+            loadPixels();
 
-                        pixels[index + 3] = Dither.bayerSingle(x_i, y_i, img.data[index + 3], factor) * 255;
+            img.loadPixels(pixels);
+
+            for (let x_i = 0; x_i < width; x_i++) {
+                for (let y_i = 0; y_i < height; y_i++) {
+                    const index = img.index(x_i, y_i);
+
+                    for (let i = 0; i < 4; i++) {
+                        let data = img.forOutput(index + i);
+                        data = Dither.bayerSingle(x_i, y_i, data, factor);
+
+                        pixels[index + i] = data * 255;
                     }
                 }
-
-                updatePixels();
-
-                process = true;
-                x = 0;
-                y = 0;
-            } else {
-                alert("Try choosing image again");
             }
+
+            updatePixels();
+
+            process = true;
+            x = 0;
+            y = 0;
+        } else {
+            alert("Try choosing image again");
         }
 
         imgInput = false;
@@ -151,8 +163,20 @@ function imgReadSuccess() {
 
     imgInput = true;
     process = false;
+    imgIn = true;
 }
 
-// function factorHandle() {
-//   factor = this.value();
-// }
+function restartChange() {
+    console.log("restart");
+
+    if (imgIn) {
+        imgInput = true;
+        process = false;
+
+        loadPixels();
+        for (let i = 0; i < img.size; i++) {
+            pixels[i] = img.forOutput(i) * 255;
+        }
+        updatePixels();
+    }
+}

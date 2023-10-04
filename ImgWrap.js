@@ -59,4 +59,16 @@ class ImgWrap {
             }
         }
     }
+
+    forOutput(index) {
+        let col = this.data[index];
+
+        if (this.colorSpace === ColorSpace.sRGB) {
+            if ((index + 1) % 4 > 0) {
+                col = sRGB.toSRGB(col);
+            }
+        }
+
+        return col;
+    }
 }
