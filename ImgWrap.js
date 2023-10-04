@@ -11,25 +11,21 @@ class ImgWrap {
         this.height = h;
         this.size = this.width * this.height * 4;
 
-        this.data = new Array(this.size);
         this.colorSpace = colorSpace;
     }
 
     loadPixels(pixels) {
-        // this.img.loadPixels();
+        this.data = new Array(this.size);
 
         for (let i in pixels) {
-            this.data[i] = (pixels[i] >>> 0) / 255;
+            this.data[i] = pixels[i] / 255.0;
 
             if ((i + 1) % 4 > 0) {
                 if (this.colorSpace == ColorSpace.sRGB) {
                     this.data[i] = sRGB.toLinear(this.data[i]);
                 }
             }
-            // this.img.pixels[i] = pixels[i];
         }
-
-        // this.img.updatePixels();
     }
 
     index(x, y) {

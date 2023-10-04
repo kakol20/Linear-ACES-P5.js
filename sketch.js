@@ -42,6 +42,8 @@ function GetIndex(x, y, imgWidth) {
 function setup() {
     createCanvas(windowWidth, windowHeight);
 
+    setAttributes('premultipliedAlpha', false);
+
     loop();
     // noLoop();
 }
@@ -172,6 +174,8 @@ function restartChange() {
     if (imgIn) {
         imgInput = true;
         process = false;
+
+        background(0, 0, 0, 0);
 
         loadPixels();
         for (let i = 0; i < img.size; i++) {
