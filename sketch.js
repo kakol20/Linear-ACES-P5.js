@@ -15,6 +15,7 @@ let factorInput;
 let factorText;
 
 let restartButton;
+let restarted;
 
 function preload() {
     input = createFileInput(handleFile);
@@ -73,7 +74,12 @@ function draw() {
 
             loadPixels();
 
-            img.loadPixels(pixels);
+            // img.loadPixels(pixels);
+            if (!restarted) {
+                img.loadPixels(pixels);
+            } else {
+                restarted = false;
+            }
 
             for (let x_i = 0; x_i < width; x_i++) {
                 for (let y_i = 0; y_i < height; y_i++) {
@@ -166,6 +172,7 @@ function imgReadSuccess() {
     imgInput = true;
     process = false;
     imgIn = true;
+    restarted = false;
 }
 
 function restartChange() {
@@ -174,13 +181,8 @@ function restartChange() {
     if (imgIn) {
         imgInput = true;
         process = false;
+        restarted = true;
 
         background(0, 0, 0, 0);
-
-        loadPixels();
-        for (let i = 0; i < img.size; i++) {
-            pixels[i] = img.forOutput(i) * 255;
-        }
-        updatePixels();
     }
 }
