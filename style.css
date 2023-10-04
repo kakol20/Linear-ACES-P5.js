@@ -15,3 +15,43 @@ html, body {
 canvas {
   display: block;
 }
+
+button {
+  border-width: 1px;
+  border-color: white;
+  border-style: outset;
+  border-radius: 3px;
+  position: relative;
+  width: auto;
+  height: auto;
+}
+
+button:hover, button:focus {
+  border-width: 1px;
+  border-color: white;
+  border-style: inset;
+  border-radius: 3px;
+  position: relative;
+  width: auto;
+  height: auto;
+}
+
+input[type=file]::file-selector-button {
+  border-width: 1px;
+  border-color: white;
+  border-style: outset;
+  border-radius: 3px;
+  position: relative;
+  width: auto;
+  height: auto;
+}
+
+input[type=file]::file-selector-button:hover, input[type=file]::file-selector-button:focus {
+  border-width: 1px;
+  border-color: white;
+  border-style: inset;
+  border-radius: 3px;
+  position: relative;
+  width: auto;
+  height: auto;
+}
