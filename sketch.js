@@ -84,7 +84,7 @@ function draw() {
 		// console.log(file);
 
 		if (imgIn) {
-			console.log("----- IMAGE IN -----");
+			// console.log("----- IMAGE IN -----");
 
 			steps = width;
 
@@ -144,23 +144,24 @@ function draw() {
 				col = LinearACES.ToneMap(
 					img.data[index + 0],
 					img.data[index + 1],
-					img.data[index + 2]
+					img.data[index + 2],
+					img.data[index + 3]
 				);
 			} else {
-				col = [img.data[index + 0], img.data[index + 1], img.data[index + 2]];
+				col = [img.data[index + 0], img.data[index + 1], img.data[index + 2], img.data[index + 3]];
 			}
 
-			for (let i = 0; i < 3; i++) {
+			// col.push(img.data[index + 3]); // add alpha
+
+			for (let i = 0; i < 4; i++) {
 				if (i < 3) {
 					col[i] = sRGB.toSRGB(col[i]);
 				}
 
 				col[i] = ditherBool ? Dither.bayerSingle(x, y, col[i], ditherFactor) : col[i];
 
-				pixels[index + i] = col[i] * 255;
+				pixels[index + i] = Math.round(col[i] * 255) >>> 0;
 			}
-
-			pixels[index + 3] = ditherBool ? Dither.bayerSingle(x, y, img.data[index + 3], ditherFactor) * 255 : img.data[index + 3] * 255;
 
 			x++;
 			if (x >= width) {
