@@ -10,40 +10,70 @@ let x = 0;
 let y = 0;
 let steps = 0;
 
-let factor = 31;
-let factorInput;
-let factorText;
+let ditherFactor = 31;
+let ditherFactorInput;
+let ditherFactorText;
+let ditherBool = true;
+let ditherCheckbox;
 
 let restartButton;
 let restarted;
 
-function preload() {
-	input = createFileInput(handleFile);
-	input.position(5, 5);
+let acesBool = true;
+let acesCheckbox;
 
-	factorText = createSpan("Dither Factor: ");
-	factorInput = createInput(31, "number");
+function positionDom(startHeight) {
+	input.position(5, startHeight);
 
-	let domHeight = 5 + input.height + 5;
+	let domHeight = startHeight + input.height + 5;
 
-	factorText.position(5, domHeight);
-	factorInput.position(factorText.width + 20, domHeight);
-
-	domHeight += factorInput.height + 5;
-
-	restartButton = createButton("Restart");
 	restartButton.position(5, domHeight);
 	restartButton.mousePressed(restartChange);
+
+	domHeight += restartButton.height + 10;
+
+	acesCheckbox.position(5, domHeight);
+
+	domHeight += acesCheckbox.height + 10;
+
+	ditherCheckbox.position(5, domHeight);
+
+	domHeight += ditherCheckbox.height + 5;
+
+	ditherFactorText.position(5, domHeight);
+	ditherFactorInput.position(ditherFactorText.width + 20, domHeight);
+}
+
+function updateDomValues() {
+	ditherFactor = ditherFactorInput.value();
+	ditherBool = ditherCheckbox.checked();
+	acesBool = acesCheckbox.checked();
 }
 
 function GetIndex(x, y, imgWidth) {
 	return (x + y * imgWidth) * 4;
 }
 
+function preload() {
+	input = createFileInput(handleFile);
+	restartButton = createButton("Restart");
+
+	ditherFactorText = createSpan("Dither Factor: ");
+	ditherFactorInput = createInput(31, "number");
+
+	ditherCheckbox = createCheckbox(" Toggle Dither", true);
+	ditherCheckbox.changed(() => { console.log("Dither toggle: " + ditherCheckbox.checked()); });
+
+	acesCheckbox = createCheckbox(" Toggle ACES", true);
+	acesCheckbox.changed(() => { console.log("ACES toggle: " + acesCheckbox.checked()); });
+
+	positionDom(5);
+}
+
 function setup() {
 	createCanvas(windowWidth, windowHeight);
 
-	setAttributes('premultipliedAlpha', false);
+	// setAttributes('premultipliedAlpha', false);
 
 	loop();
 	// noLoop();
@@ -58,19 +88,9 @@ function draw() {
 
 			steps = width;
 
-			let domHeight = height + 5;
+			updateDomValues();
 
-			input.position(5, domHeight);
-
-			domHeight += input.height + 5;
-
-			factorText.position(5, domHeight);
-			factorInput.position(factorText.width + 20, domHeight);
-
-			domHeight += factorInput.height + 5;
-			restartButton.position(5, domHeight);
-
-			factor = factorInput.value();
+			positionDom(height + 5);
 
 			loadPixels();
 
@@ -87,7 +107,7 @@ function draw() {
 
 					for (let i = 0; i < 4; i++) {
 						let data = img.forOutput(index + i);
-						data = Dither.bayerSingle(x_i, y_i, data, factor);
+						// data = ditherBool ? Dither.bayerSingle(x_i, y_i, data, ditherFactor) : data;
 
 						pixels[index + i] = data * 255;
 					}
@@ -109,23 +129,38 @@ function draw() {
 		for (let step = 0; step < steps; step++) {
 			const index = GetIndex(x, y, width);
 
-			let col = LinearACES.ToneMap(
-				img.data[index + 0],
-				img.data[index + 1],
-				img.data[index + 2]
-			);
+			if (index + (steps * 4) < img.data.length) {
+				const nextIndex = index + (steps * 4);
+				const lineAlpha = 0.25;
+				pixels[nextIndex + 0] = (0 * lineAlpha) + (pixels[nextIndex + 0] * (1 - lineAlpha));
+				pixels[nextIndex + 1] = (255 * lineAlpha) + (pixels[nextIndex + 1] * (1 - lineAlpha));
+				pixels[nextIndex + 2] = (0 * lineAlpha) + (pixels[nextIndex + 2] * (1 - lineAlpha));
+				pixels[nextIndex + 3] = (255 * lineAlpha) + (pixels[nextIndex + 3] * (1 - lineAlpha));
+			}
+
+			let col = [];
+
+			if (acesBool) {
+				col = LinearACES.ToneMap(
+					img.data[index + 0],
+					img.data[index + 1],
+					img.data[index + 2]
+				);
+			} else {
+				col = [img.data[index + 0], img.data[index + 1], img.data[index + 2]];
+			}
 
 			for (let i = 0; i < 3; i++) {
 				if (i < 3) {
 					col[i] = sRGB.toSRGB(col[i]);
 				}
 
-				col[i] = Dither.bayerSingle(x, y, col[i], factor);
+				col[i] = ditherBool ? Dither.bayerSingle(x, y, col[i], ditherFactor) : col[i];
 
 				pixels[index + i] = col[i] * 255;
 			}
 
-			pixels[index + 3] = Dither.bayerSingle(x, y, img.data[index + 3], factor) * 255;
+			pixels[index + 3] = ditherBool ? Dither.bayerSingle(x, y, img.data[index + 3], ditherFactor) * 255 : img.data[index + 3] * 255;
 
 			x++;
 			if (x >= width) {
@@ -134,12 +169,14 @@ function draw() {
 			}
 
 			if (y >= height) {
-				console.log("----- PROCESS -----");
+				// console.log("----- PROCESS -----");
 
 				process = false;
 
-				console.log(pixels);
-				console.log(img);
+				// console.log(pixels);
+				// console.log(img);
+
+				console.log("-----PROCESS DONE -----");
 				break;
 			}
 		}
@@ -165,9 +202,9 @@ function imgReadSuccess() {
 	background(28, 28, 28, 0);
 	image(fileImg, 0, 0);
 
-	loadPixels();
-	console.log(pixels);
-	updatePixels();
+	// loadPixels();
+	// console.log(pixels);
+	// updatePixels();
 
 	imgInput = true;
 	process = false;
