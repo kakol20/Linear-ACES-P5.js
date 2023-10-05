@@ -22,24 +22,39 @@ let restarted;
 let acesBool = true;
 let acesCheckbox;
 
+let kelvinTint = true;
+let kelvinTemp = 5000;
+let kelvinCheckbox;
+let kelvinText;
+let kelvinTempInput;
+
 function positionDom(startHeight) {
+	// ----- INPUT -----
 	input.position(5, startHeight);
 
+	// ----- RESTART -----
 	let domHeight = startHeight + input.height + 5;
-
 	restartButton.position(5, domHeight);
 	restartButton.mousePressed(restartChange);
 
+	// ----- ACES ------
 	domHeight += restartButton.height + 10;
 
 	acesCheckbox.position(5, domHeight);
 
+	// ----- KELVIN -----
 	domHeight += acesCheckbox.height + 10;
+	kelvinCheckbox.position(5, domHeight);
 
+	domHeight += kelvinCheckbox.height + 5;
+	kelvinText.position(5, domHeight);
+	kelvinTempInput.position(kelvinText.width + 25, domHeight);
+
+	// ----- DITHER -----
+	domHeight += kelvinTempInput.height + 10;
 	ditherCheckbox.position(5, domHeight);
 
 	domHeight += ditherCheckbox.height + 5;
-
 	ditherFactorText.position(5, domHeight);
 	ditherFactorInput.position(ditherFactorText.width + 20, domHeight);
 }
@@ -47,7 +62,11 @@ function positionDom(startHeight) {
 function updateDomValues() {
 	ditherFactor = ditherFactorInput.value();
 	ditherBool = ditherCheckbox.checked();
+
 	acesBool = acesCheckbox.checked();
+
+	kelvinTint = kelvinCheckbox.checked();
+	kelvinTemp = kelvinTempInput.value();
 }
 
 function GetIndex(x, y, imgWidth) {
@@ -66,6 +85,11 @@ function preload() {
 
 	acesCheckbox = createCheckbox(" Toggle ACES", true);
 	acesCheckbox.changed(() => { console.log("ACES toggle: " + acesCheckbox.checked()); });
+
+	kelvinCheckbox = createCheckbox(" Toggle Kelvin Tint", false);
+	kelvinCheckbox.changed(() => { console.log("Kelvin Tint toggle: " + kelvinCheckbox.checked()); });
+	kelvinText = createSpan("Kelvin Temperature: ");
+	kelvinTempInput = createInput(5000, "number");
 
 	positionDom(5);
 }
@@ -138,17 +162,13 @@ function draw() {
 				pixels[nextIndex + 3] = (255 * lineAlpha) + (pixels[nextIndex + 3] * (1 - lineAlpha));
 			}
 
-			let col = [];
+			let col = [img.data[index + 0],
+			img.data[index + 1],
+			img.data[index + 2],
+			img.data[index + 3]];
 
 			if (acesBool) {
-				col = LinearACES.ToneMap(
-					img.data[index + 0],
-					img.data[index + 1],
-					img.data[index + 2],
-					img.data[index + 3]
-				);
-			} else {
-				col = [img.data[index + 0], img.data[index + 1], img.data[index + 2], img.data[index + 3]];
+				col = LinearACES.ToneMap(col[0], col[1], col[2], col[3]);
 			}
 
 			// col.push(img.data[index + 3]); // add alpha
@@ -157,8 +177,14 @@ function draw() {
 				if (i < 3) {
 					col[i] = sRGB.toSRGB(col[i]);
 				}
+			}
 
-				col[i] = ditherBool ? Dither.bayerSingle(x, y, col[i], ditherFactor) : col[i];
+			if (kelvinTint) {
+				col = Kelvin.Tint(col, kelvinTemp);
+			}
+
+			for (let i = 0; i < 4; i++) {
+				if (ditherBool) col[i] = Dither.bayerSingle(x, y, col[i], ditherFactor);
 
 				pixels[index + i] = Math.round(col[i] * 255) >>> 0;
 			}
