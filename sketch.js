@@ -22,6 +22,7 @@ const Manager = (function () {
 	let ditherBool = true;
 	let ditherCheckbox;
 	let ditherSelect;
+	let ditherSelectValue;
 
 	let restartButton;
 	let restarted;
@@ -87,6 +88,8 @@ const Manager = (function () {
 
 		kelvinTint = kelvinCheckbox.checked();
 		kelvinTemp = kelvinTempInput.value();
+
+		ditherSelectValue = ditherSelect.value();
 	}
 
 	function GetIndex(x, y, imgWidth) {
@@ -140,7 +143,7 @@ const Manager = (function () {
 	}
 
 	return {
-		preload: function () {
+		preload() {
 			input = createFileInput(handleFile);
 			restartButton = createButton("Restart");
 
@@ -170,7 +173,7 @@ const Manager = (function () {
 			positionDom(5);
 		},
 
-		setup: function () {
+		setup() {
 			createCanvas(windowWidth, windowHeight);
 
 			// setAttributes('premultipliedAlpha', false);
@@ -179,7 +182,7 @@ const Manager = (function () {
 			// noLoop();
 		},
 
-		draw: function () {
+		draw() {
 			if (imgInput === true) {
 				// console.log(file);
 
@@ -259,10 +262,14 @@ const Manager = (function () {
 					if (ditherBool) {
 						// col = Dither.bayerArray(x, y, col, ditherFactor);
 
-						if (ditherSelect.value() == "CMYK") {
+						if (ditherSelectValue === "CMYK") {
 							let cmyk = CMYK.fromRGB(col);
 							cmyk = Dither.bayerArray(x, y, cmyk, ditherFactor);
 							col = CMYK.toRGB(cmyk);
+						} else if (ditherSelectValue === "HSV") {
+							let hsv = HSV.fromRGB(col);
+							hsv = Dither.bayerArray(x, y, hsv, ditherFactor);
+							col = HSV.toRGB(hsv);
 						} else {
 							col = Dither.bayerArray(x, y, col, ditherFactor);
 						}
