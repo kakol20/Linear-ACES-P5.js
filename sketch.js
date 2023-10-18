@@ -21,6 +21,7 @@ const Manager = (function () {
 	let ditherFactorText;
 	let ditherBool = true;
 	let ditherCheckbox;
+	let ditherSelect;
 
 	let restartButton;
 	let restarted;
@@ -227,7 +228,13 @@ const Manager = (function () {
 					}
 
 					if (ditherBool) {
-						col = Dither.bayerArray(x, y, col, ditherFactor);
+						// col = Dither.bayerArray(x, y, col, ditherFactor);
+
+						// test CMYK
+						let cmyk = CMYK.fromRGB(col);
+						cmyk = Dither.bayerArray(x, y, cmyk, ditherFactor);
+
+						col = CMYK.toRGB(cmyk);
 					}
 
 					for (let i = 0; i < 4; i++) {
