@@ -11,7 +11,10 @@ const Manager = (function () {
 
 	let x = 0;
 	let y = 0;
-	let steps = 0;
+	let maxSteps = 0;
+	let maxTime = 0;
+
+	let fps = 60;
 
 	let ditherFactor = 31;
 	let ditherFactorInput;
@@ -156,7 +159,8 @@ const Manager = (function () {
 				if (imgIn) {
 					// console.log("----- IMAGE IN -----");
 
-					steps = width;
+					maxSteps = width * height;
+					maxTime = (1 / fps) * 1000;
 
 					updateDomValues();
 
@@ -196,17 +200,10 @@ const Manager = (function () {
 				imgInput = false;
 			} else if (process && !imgInput) {
 				loadPixels();
-				for (let step = 0; step < steps; step++) {
-					const index = GetIndex(x, y, width);
 
-					if (index + (steps * 4) < img.data.length) {
-						const nextIndex = index + (steps * 4);
-						const lineAlpha = 0.25;
-						pixels[nextIndex + 0] = (0 * lineAlpha) + (pixels[nextIndex + 0] * (1 - lineAlpha));
-						pixels[nextIndex + 1] = (255 * lineAlpha) + (pixels[nextIndex + 1] * (1 - lineAlpha));
-						pixels[nextIndex + 2] = (0 * lineAlpha) + (pixels[nextIndex + 2] * (1 - lineAlpha));
-						pixels[nextIndex + 3] = (255 * lineAlpha) + (pixels[nextIndex + 3] * (1 - lineAlpha));
-					}
+				const startTime = new Date();
+				for (let step = 0; step < maxSteps; step++) {
+					const index = GetIndex(x, y, width);
 
 					let col = [img.data[index + 0],
 					img.data[index + 1],
@@ -252,6 +249,10 @@ const Manager = (function () {
 						console.log("-----PROCESS DONE -----");
 						break;
 					}
+
+					const currTime = new Date();
+					const elapseTime = currTime - startTime;
+					if (elapseTime >= maxTime) break;
 				}
 
 				updatePixels();
