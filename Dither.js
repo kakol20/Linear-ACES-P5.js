@@ -18,7 +18,9 @@ const Dither = (function () {
 		170, 106, 154, 90, 166, 102, 150, 86, 169, 105, 153, 89, 165, 101, 149, 85
 	];
 	return {
-		bayerSingle: function (x, y, c, factor) {
+		bayerSingle(x, y, c, factor) {
+			if (factor <= 0) return c;
+
 			const l_x = x % 16;
 			const l_y = y % 16;
 			const bayerIndex = l_x + l_y * 16;
@@ -30,6 +32,24 @@ const Dither = (function () {
 			v = Math.round(v * factor) / factor;
 
 			return v;
+		},
+
+		bayerArray(x, y, a, factor) {
+			if (factor <= 0) return a;
+			
+			const l_x = x % 16;
+			const l_y = y % 16;
+			const bayerIndex = l_x + l_y * 16;
+
+			const threshold = BayerThreshold[bayerIndex] / 256.0;
+			const octet = 1.0 / factor;
+
+			let o = a;
+			for (let i = 0; i < o.length; i++) {
+				let v = o[i] + octet * (threshold - 0.5);
+				o[i] = Math.round(v * factor) / factor;
+			}
+			return o;
 		}
 	}
 })();

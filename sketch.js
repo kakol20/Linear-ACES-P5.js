@@ -226,8 +226,12 @@ const Manager = (function () {
 						col = Kelvin.Tint(col, kelvinTemp);
 					}
 
+					if (ditherBool) {
+						col = Dither.bayerArray(x, y, col, ditherFactor);
+					}
+
 					for (let i = 0; i < 4; i++) {
-						if (ditherBool) col[i] = Dither.bayerSingle(x, y, col[i], ditherFactor);
+						// if (ditherBool) col[i] = Dither.bayerSingle(x, y, col[i], ditherFactor);
 
 						pixels[index + i] = Math.round(col[i] * 255) >>> 0;
 					}
@@ -247,6 +251,7 @@ const Manager = (function () {
 						// console.log(img);
 
 						console.log("-----PROCESS DONE -----");
+						alert("Process Done");
 						break;
 					}
 
