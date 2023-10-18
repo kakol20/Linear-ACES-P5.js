@@ -174,6 +174,7 @@ const Manager = (function () {
 		},
 
 		setup() {
+			pixelDensity(1);
 			createCanvas(windowWidth, windowHeight);
 
 			// setAttributes('premultipliedAlpha', false);
