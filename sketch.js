@@ -21,6 +21,8 @@ const Manager = (function () {
 	let ditherFactorText;
 	let ditherBool = true;
 	let ditherCheckbox;
+	let ditherSelect;
+	let ditherSelectValue;
 
 	let restartButton;
 	let restarted;
@@ -34,14 +36,22 @@ const Manager = (function () {
 	let kelvinText;
 	let kelvinTempInput;
 
+	let progressSpan;
+
 	// -----
 
 	function positionDom(startHeight) {
+		let domHeight = startHeight;
+
+		// ----- PROGRESS ------
+		progressSpan.position(5, domHeight);
+
 		// ----- INPUT -----
-		input.position(5, startHeight);
+		domHeight += progressSpan.height + 10;
+		input.position(4, domHeight);
 
 		// ----- RESTART -----
-		let domHeight = startHeight + input.height + 5;
+		domHeight += input.height + 5;
 		restartButton.position(5, domHeight);
 		restartButton.mousePressed(restartChange);
 
@@ -65,6 +75,9 @@ const Manager = (function () {
 		domHeight += ditherCheckbox.height + 5;
 		ditherFactorText.position(5, domHeight);
 		ditherFactorInput.position(ditherFactorText.width + 20, domHeight);
+
+		domHeight += ditherFactorInput.height + 5;
+		ditherSelect.position(5, domHeight);
 	}
 
 	function updateDomValues() {
@@ -75,6 +88,8 @@ const Manager = (function () {
 
 		kelvinTint = kelvinCheckbox.checked();
 		kelvinTemp = kelvinTempInput.value();
+
+		ditherSelectValue = ditherSelect.value();
 	}
 
 	function GetIndex(x, y, imgWidth) {
@@ -121,8 +136,14 @@ const Manager = (function () {
 			background(0, 0, 0, 0);
 		}
 	}
+
+	function GetProgress() {
+		const currIndex = GetIndex(x, y, width) + 3;
+		return "Progress: " + Math.floor((currIndex / img.size) * 100) + "%";
+	}
+
 	return {
-		preload: function () {
+		preload() {
 			input = createFileInput(handleFile);
 			restartButton = createButton("Restart");
 
@@ -132,6 +153,13 @@ const Manager = (function () {
 			ditherCheckbox = createCheckbox(" Toggle Dither", true);
 			ditherCheckbox.changed(() => { console.log("Dither toggle: " + ditherCheckbox.checked()); });
 
+			ditherSelect = createSelect();
+			ditherSelect.option("RGB");
+			ditherSelect.option("HSV");
+			ditherSelect.option("CMYK");
+			ditherSelect.selected("RGB");
+			ditherSelect.changed(() => { console.log("Dither Select: " + ditherSelect.value()); });
+
 			acesCheckbox = createCheckbox(" Toggle ACES", true);
 			acesCheckbox.changed(() => { console.log("ACES toggle: " + acesCheckbox.checked()); });
 
@@ -140,10 +168,12 @@ const Manager = (function () {
 			kelvinText = createSpan("Kelvin Temperature: ");
 			kelvinTempInput = createInput(5000, "number");
 
+			progressSpan = createSpan("Progress: ");
+
 			positionDom(5);
 		},
 
-		setup: function () {
+		setup() {
 			createCanvas(windowWidth, windowHeight);
 
 			// setAttributes('premultipliedAlpha', false);
@@ -152,7 +182,7 @@ const Manager = (function () {
 			// noLoop();
 		},
 
-		draw: function () {
+		draw() {
 			if (imgInput === true) {
 				// console.log(file);
 
@@ -201,6 +231,9 @@ const Manager = (function () {
 			} else if (process && !imgInput) {
 				loadPixels();
 
+				// load progress
+				progressSpan.html(GetProgress());
+
 				const startTime = new Date();
 				for (let step = 0; step < maxSteps; step++) {
 					const index = GetIndex(x, y, width);
@@ -226,8 +259,24 @@ const Manager = (function () {
 						col = Kelvin.Tint(col, kelvinTemp);
 					}
 
+					if (ditherBool) {
+						// col = Dither.bayerArray(x, y, col, ditherFactor);
+
+						if (ditherSelectValue === "CMYK") {
+							let cmyk = CMYK.fromRGB(col);
+							cmyk = Dither.bayerArray(x, y, cmyk, ditherFactor);
+							col = CMYK.toRGB(cmyk);
+						} else if (ditherSelectValue === "HSV") {
+							let hsv = HSV.fromRGB(col);
+							hsv = Dither.bayerArray(x, y, hsv, ditherFactor);
+							col = HSV.toRGB(hsv);
+						} else {
+							col = Dither.bayerArray(x, y, col, ditherFactor);
+						}
+					}
+
 					for (let i = 0; i < 4; i++) {
-						if (ditherBool) col[i] = Dither.bayerSingle(x, y, col[i], ditherFactor);
+						// if (ditherBool) col[i] = Dither.bayerSingle(x, y, col[i], ditherFactor);
 
 						pixels[index + i] = Math.round(col[i] * 255) >>> 0;
 					}
@@ -246,7 +295,10 @@ const Manager = (function () {
 						// console.log(pixels);
 						// console.log(img);
 
+						progressSpan.html(GetProgress());
+
 						console.log("-----PROCESS DONE -----");
+						// alert("Process Done");
 						break;
 					}
 
