@@ -106,7 +106,7 @@ const Manager = (function () {
 	}
 
 	function GetIndex(x, y, imgWidth) {
-		return (x + y * imgWidth) * 4;
+		return (y * imgWidth + x) * 4 * pixelDensity();
 	}
 
 	// -----
@@ -150,7 +150,7 @@ const Manager = (function () {
 
 			resizeCanvas(loaded.width, loaded.height);
 
-			img = new ImgWrap(width, height, ColorSpace.sRGB);
+			img = new ImgWrap(width, height, ColorSpace.sRGB, pixelDensity());
 
 			background(28, 28, 28, 0);
 			image(loaded, 0, 0);
@@ -224,7 +224,7 @@ const Manager = (function () {
 		},
 
 		setup() {
-			pixelDensity(1);
+			// pixelDensity(2);
 			createCanvas(windowWidth, windowHeight);
 
 			// setAttributes('premultipliedAlpha', false);
@@ -256,9 +256,9 @@ const Manager = (function () {
 						restarted = false;
 					}
 
-					for (let x_i = 0; x_i < width; x_i++) {
-						for (let y_i = 0; y_i < height; y_i++) {
-							const index = img.index(x_i, y_i);
+					for (let x_i = 0; x_i < width * pixelDensity(); x_i++) {
+						for (let y_i = 0; y_i < height * pixelDensity(); y_i++) {
+							const index = img.index(x_i, y_i, pixelDensity());
 
 							for (let i = 0; i < 4; i++) {
 								let data = img.forOutput(index + i);
@@ -312,6 +312,8 @@ const Manager = (function () {
 
 					if (ditherBool) {
 						// col = Dither.bayerArray(x, y, col, ditherFactor);
+						// const x = Math.round(x / pixelDensity());
+						// const y = Math.round(y / pixelDensity());
 
 						if (ditherSelectValue === "CMYK") {
 							let cmyk = CMYK.fromRGB(col);
@@ -333,12 +335,12 @@ const Manager = (function () {
 					}
 
 					x++;
-					if (x >= width) {
+					if (x >= width * pixelDensity()) {
 						x = 0;
 						y++;
 					}
 
-					if (y >= height) {
+					if (y >= height * pixelDensity()) {
 						// console.log("----- PROCESS -----");
 
 						process = false;
