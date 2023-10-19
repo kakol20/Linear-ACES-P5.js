@@ -38,6 +38,11 @@ const Manager = (function () {
 
 	let progressSpan;
 
+	let resizeCheckbox;
+	let resizeBool;
+	let resizeMethodSelect;
+	let resizeMethodValue;
+
 	// -----
 
 	function positionDom(startHeight) {
@@ -53,11 +58,16 @@ const Manager = (function () {
 		// ----- RESTART -----
 		domHeight += input.height + 5;
 		restartButton.position(5, domHeight);
-		restartButton.mousePressed(restartChange);
+
+		// ----- RESIZE -----
+		domHeight += restartButton.height + 10;
+		resizeCheckbox.position(5, domHeight);
+
+		domHeight += resizeCheckbox.height + 5;
+		resizeMethodSelect.position(6, domHeight);
 
 		// ----- ACES ------
-		domHeight += restartButton.height + 10;
-
+		domHeight += restartButton.height + 15;
 		acesCheckbox.position(5, domHeight);
 
 		// ----- KELVIN -----
@@ -90,6 +100,9 @@ const Manager = (function () {
 		kelvinTemp = kelvinTempInput.value();
 
 		ditherSelectValue = ditherSelect.value();
+
+		resizeBool = resizeCheckbox.checked();
+		resizeMethodValue = resizeMethodSelect.value();
 	}
 
 	function GetIndex(x, y, imgWidth) {
@@ -102,37 +115,61 @@ const Manager = (function () {
 		// console.log(f);
 		if (f.type == 'image') {
 			fileImg = createImg(f.data, '', 'anonymous', imgReadSuccess);
-	
+
 			fileImg.hide();
+
 		}
 	}
-	
+
 	function imgReadSuccess() {
-		resizeCanvas(fileImg.width, fileImg.height);
-	
-		img = new ImgWrap(width, height, ColorSpace.sRGB);
-	
-		background(28, 28, 28, 0);
-		image(fileImg, 0, 0);
-	
-		// loadPixels();
-		// console.log(pixels);
-		// updatePixels();
-	
-		imgInput = true;
-		process = false;
-		imgIn = true;
-		restarted = false;
+		updateDomValues();
+
+		const selectedFile = document.getElementById("upload");
+		const imageFile = selectedFile.files[0];
+		let imgURL = URL.createObjectURL(imageFile);
+
+		loadImage(imgURL, loaded => {
+			if (resizeBool) {
+				if (resizeMethodValue === "Fit Width") {
+					loaded.resize(windowWidth, 0);
+				} else if (resizeMethodValue === "Fit Height") {
+					loaded.resize(0, windowHeight);
+				} else {
+					let arI = loaded.width / loaded.height;
+					let arW = windowWidth / windowHeight;
+
+					if (arI > arW) {
+						loaded.resize(windowWidth, 0);
+					} else if (arI < arW) {
+						loaded.resize(0, windowHeight);
+					} else {
+						loaded.resize(windowWidth, 0);
+					}
+				}
+			}
+
+			resizeCanvas(loaded.width, loaded.height);
+
+			img = new ImgWrap(width, height, ColorSpace.sRGB);
+
+			background(28, 28, 28, 0);
+			image(loaded, 0, 0);
+
+			imgInput = true;
+			process = false;
+			imgIn = true;
+			restarted = false;
+		});
 	}
-	
+
 	function restartChange() {
 		console.log("restart");
-	
+
 		if (imgIn) {
 			imgInput = true;
 			process = false;
 			restarted = true;
-	
+
 			background(0, 0, 0, 0);
 		}
 	}
@@ -145,7 +182,10 @@ const Manager = (function () {
 	return {
 		preload() {
 			input = createFileInput(handleFile);
+			input.id("upload");
+
 			restartButton = createButton("Restart");
+			restartButton.mousePressed(restartChange);
 
 			ditherFactorText = createSpan("Dither Factor: ");
 			ditherFactorInput = createInput(31, "number");
@@ -169,6 +209,16 @@ const Manager = (function () {
 			kelvinTempInput = createInput(5000, "number");
 
 			progressSpan = createSpan("Progress: ");
+
+			resizeCheckbox = createCheckbox(" Toggle Resize", true);
+			resizeCheckbox.changed(() => { console.log("Resize Toggle: " + resizeCheckbox.checked()); });
+
+			resizeMethodSelect = createSelect();
+			resizeMethodSelect.option("Fit Window");
+			resizeMethodSelect.option("Fit Width");
+			resizeMethodSelect.option("Fit Height");
+			resizeMethodSelect.selected("Fit Window");
+			resizeMethodSelect.changed(() => { console.log("Resize Method: " + resizeMethodSelect.value()); });
 
 			positionDom(5);
 		},
