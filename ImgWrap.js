@@ -4,24 +4,20 @@ const ColorSpace = {
 }
 
 class ImgWrap {
-	constructor(w, h, colorSpace, d) {
+	constructor(w, h, colorSpace) {
 		// this.img = createImage(w, h);
 
 		this.width = w;
 		this.height = h;
-		this.size = 0;
+		this.size = this.width * this.height * 4;
 
 		this.colorSpace = colorSpace;
 	}
 
 	loadPixels(pixels) {
-		this.size = pixels.length;
 		this.data = new Array(this.size);
 
-		// console.log(pixels);
-		// console.log(this.size);
-
-		for (let i = 0; i < pixels.length; i++) {
+		for (let i in pixels) {
 			this.data[i] = pixels[i] / 255.0;
 
 			if ((i + 1) % 4 > 0) {
@@ -32,17 +28,17 @@ class ImgWrap {
 		}
 	}
 
-	index(x, y, d) {
-		return (x + y * this.width) * 4 * d;
+	index(x, y) {
+		return (x + y * this.width) * 4;
 	}
 
-	// indexToXY(index) {
-	// 	let pixelIndex = Math.floor(index / 4);
-	// 	let x = pixelIndex % this.width;
-	// 	let y = pixelIndex / this.width;
+	indexToXY(index) {
+		let pixelIndex = Math.floor(index / 4);
+		let x = pixelIndex % this.width;
+		let y = pixelIndex / this.width;
 
-	// 	return [x, y];
-	// }
+		return [x, y];
+	}
 
 	toBW() {
 		for (let x = 0; x < this.width; x++) {
