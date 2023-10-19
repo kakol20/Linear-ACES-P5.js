@@ -134,7 +134,20 @@ const Manager = (function () {
 					loaded.resize(windowWidth, 0);
 				} else if (resizeMethodValue === "Fit Height") {
 					loaded.resize(0, windowHeight);
-				} else {
+				} else if (resizeMethodValue === "Fit If Large") {
+					if (loaded.width > windowWidth || loaded.height > windowHeight) {
+						let arI = loaded.width / loaded.height;
+						let arW = windowWidth / windowHeight;
+
+						if (arI > arW) {
+							loaded.resize(windowWidth, 0);
+						} else if (arI < arW) {
+							loaded.resize(0, windowHeight);
+						} else {
+							loaded.resize(windowWidth, 0);
+						}
+					}
+				} else if (resizeMethodValue === "Fit Window") {
 					let arI = loaded.width / loaded.height;
 					let arW = windowWidth / windowHeight;
 
@@ -214,10 +227,11 @@ const Manager = (function () {
 			resizeCheckbox.changed(() => { console.log("Resize Toggle: " + resizeCheckbox.checked()); });
 
 			resizeMethodSelect = createSelect();
+			resizeMethodSelect.option("Fit If Large");
 			resizeMethodSelect.option("Fit Window");
 			resizeMethodSelect.option("Fit Width");
 			resizeMethodSelect.option("Fit Height");
-			resizeMethodSelect.selected("Fit Window");
+			resizeMethodSelect.selected("Fit If Large");
 			resizeMethodSelect.changed(() => { console.log("Resize Method: " + resizeMethodSelect.value()); });
 
 			positionDom(5);
