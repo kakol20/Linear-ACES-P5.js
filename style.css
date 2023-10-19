@@ -29,6 +29,28 @@ button {
 	flex: none;
 }
 
+input:not(#upload) {
+	border-width: 1px;
+	border-color: white;
+	border-style: outset;
+	border-radius: 3px;
+	position: relative;
+	width: auto;
+	height: auto;
+	flex: none;
+}
+
+select {
+	border-width: 1px;
+	border-color: white;
+	border-style: outset;
+	border-radius: 3px;
+	position: relative;
+	width: auto;
+	height: auto;
+	flex: none;
+}
+
 button:hover,
 button:focus {
 	border-width: 1px;
