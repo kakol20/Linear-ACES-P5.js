@@ -1,8 +1,8 @@
 const ProcessManager = (function () {
   let state = 'nothing';
 
-  function GetIndex(a, b, c, d) {
-    return (a * b * c) * d;
+  function GetIndex(x, y, w, c) {
+    return (x + y * w) * c;
   }
 
   const maxFPS = 60;
@@ -11,6 +11,8 @@ const ProcessManager = (function () {
   let x, y;
 
   let constData = [];
+  let processData = [];
+  let processOrder = [];
 
   const debugStates = true;
 
@@ -27,6 +29,8 @@ const ProcessManager = (function () {
         y = 0;
 
         constData = [];
+        processData = [];
+        processOrder = [];
 
         this.changeState('saveImage');
       } else if (state === 'saveImage') {
@@ -35,9 +39,14 @@ const ProcessManager = (function () {
         while (true) {
           const index = GetIndex(x, y, width, 4);
 
+          processOrder.push({ index: index, x: x, y: y });
+
           for (let i = 0; i < 4; i++) {
             // Normalize to 0-1
-            constData.push(pixels[index + i] / 255.0);
+            let c = pixels[index + i] / 255.0;
+
+            constData.push(c);
+            processData.push(c);
           }
 
           x++;
@@ -53,7 +62,11 @@ const ProcessManager = (function () {
           const elapseTime = (new Date()) - startTime;
           if (elapseTime >= maxTime) break;
         }
-        updatePixels();
+        DOMManager.updateProgress('Progress', (GetIndex(x, y, width, 4) / GetIndex(width - 1, height - 1, width, 4)) * 100);
+
+        // updatePixels();
+      } else if (state === 'processImage') {
+        const startTime = new Date();
       }
     }
   }

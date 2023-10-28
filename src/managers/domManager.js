@@ -1,26 +1,45 @@
 const DOMManager = (function () {
+  let progressSpan;
+
   let input;
   let fileImage;
 
   function positionDOM() {
+    function queryWidth(w, qw) {
+      return w < qw ? qw : w;
+    }
+
     let domHeight = 5;
-    let width = 5;
-    let queryWidth = 5;
+    let _width = 5;
+    
+    // ----- PROGRESS -----
+    progressSpan.position(5, domHeight);
+    domHeight += progressSpan.height + 10;
+
+    _width = queryWidth(_width, progressSpan.width + 5);
 
     // ----- IMAGE INPUT -----
     input.position(5, domHeight);
-    queryWidth = input.width + 5;
-    width = width < queryWidth ? queryWidth : width;
+    domHeight += input.height + 5;
 
-    return width;
+    _width = queryWidth(_width, input.width + 5);
+
+    return _width;
   }
   return {
+    updateProgress(s, p) {
+      progressSpan.html(s + ": " + Math.round(p) + "%");
+    },
+
     preload() {
+      // ----- PROGRESS -----
+      progressSpan = createSpan("Progress: ");
+
       // ----- IMAGE INPUT -----
       input = createFileInput((f) => {
-        if (f.type == 'image') {
-          fileImage = createImg(f.data, '', 'anonymous', () => {
-            const selectedFile = document.getElementById('upload');
+        if (f.type == "image") {
+          fileImage = createImg(f.data, "", "anonymous", () => {
+            const selectedFile = document.getElementById("upload");
             const imageFile = selectedFile.files[0];
             let imageURL = URL.createObjectURL(imageFile);
 
@@ -47,14 +66,14 @@ const DOMManager = (function () {
               background(28, 28, 28, 0);
               image(loaded, 0, 0);
 
-              ProcessManager.changeState('loadImage');
+              ProcessManager.changeState("loadImage");
             });
           });
 
           fileImage.hide();
         }
       });
-      input.id('upload');
+      input.id("upload");
 
       this.domWidth = positionDOM();
     },
