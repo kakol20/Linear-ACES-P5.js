@@ -1,0 +1,19 @@
+@font-face {
+	font-family: 'Open Sans';
+	src: url('opensans-regular-webfont.woff2') format('woff2'), url('opensans-regular-webfont.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #1C1C1C;
+	color: white;
+	font-family: 'Open Sans';
+}
+
+canvas {
+	display: block;
+}
