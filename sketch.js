@@ -9,8 +9,6 @@ const Manager = (function () {
 	let fileImg;
 	let imgIn;
 
-	let x = 0;
-	let y = 0;
 	let maxSteps = 0;
 	let maxTime = 0;
 
@@ -42,6 +40,9 @@ const Manager = (function () {
 	let resizeBool;
 	let resizeMethodSelect;
 	let resizeMethodValue;
+
+	let processArray = [];
+	let processIndex = 0;
 
 	// -----
 
@@ -188,8 +189,8 @@ const Manager = (function () {
 	}
 
 	function GetProgress() {
-		const currIndex = GetIndex(x, y, width) + 3;
-		return "Progress: " + Math.floor((currIndex / img.size) * 100) + "%";
+		// const currIndex = GetIndex(x, y, width) + 3;
+		return "Progress: " + Math.floor((processIndex / processArray.length) * 100) + "%";
 	}
 
 	return {
@@ -238,6 +239,8 @@ const Manager = (function () {
 		},
 
 		setup() {
+			Random.Seed = BigInt(new Date());
+
 			pixelDensity(1);
 			createCanvas(windowWidth, windowHeight);
 
@@ -263,16 +266,31 @@ const Manager = (function () {
 
 					loadPixels();
 
+					processIndex = 0;
+
 					// img.loadPixels(pixels);
 					if (!restarted) {
 						img.loadPixels(pixels);
+
+						processArray = [];
 					} else {
-						restarted = false;
+						
 					}
 
-					for (let x_i = 0; x_i < width; x_i++) {
-						for (let y_i = 0; y_i < height; y_i++) {
+					processIndex = 0;
+
+					let tempI = 0;
+					for (let y_i = 0; y_i < height; y_i++) {
+						for (let x_i = 0; x_i < width; x_i++) {
 							const index = img.index(x_i, y_i);
+
+							if (!restarted) {
+								processArray.push({
+									index: index,
+									x: x_i,
+									y: y_i
+								});
+							}
 
 							for (let i = 0; i < 4; i++) {
 								let data = img.forOutput(index + i);
@@ -283,11 +301,19 @@ const Manager = (function () {
 						}
 					}
 
+					if (!restarted) {
+						console.log(processArray);
+
+						// console.log(processArray);
+					}
+
 					updatePixels();
 
 					process = true;
 					x = 0;
 					y = 0;
+
+					if (restarted) restarted = false;
 				} else {
 					alert("Try choosing image again");
 				}
@@ -301,7 +327,9 @@ const Manager = (function () {
 
 				const startTime = new Date();
 				for (let step = 0; step < maxSteps; step++) {
-					const index = GetIndex(x, y, width);
+					const index = processArray[processIndex].index;
+					const x = processArray[processIndex].x;
+					const y = processArray[processIndex].y;
 
 					let col = [img.data[index + 0],
 					img.data[index + 1],
@@ -346,24 +374,15 @@ const Manager = (function () {
 						pixels[index + i] = Math.round(col[i] * 255) >>> 0;
 					}
 
-					x++;
-					if (x >= width) {
-						x = 0;
-						y++;
-					}
-
-					if (y >= height) {
-						// console.log("----- PROCESS -----");
+					processIndex++;
+					if (processIndex >= processArray.length) {
+						progressSpan.html(GetProgress());
 
 						process = false;
 
-						// console.log(pixels);
-						// console.log(img);
-
-						progressSpan.html(GetProgress());
-
 						console.log("-----PROCESS DONE -----");
-						// alert("Process Done");
+						// 	// alert("Process Done");
+
 						break;
 					}
 
