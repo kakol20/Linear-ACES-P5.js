@@ -3,17 +3,19 @@ const MainManager = (function () {
 
   return {
     preload() {
-      // do nothing for now
+      DOMManager.preload();
     },
 
     setup() {
-      canvas = createCanvas(windowWidth - 10, windowHeight);
-      canvas.position(10, 0);
+      pixelDensity(1);
+
+      canvas = createCanvas(windowWidth - DOMManager.domWidth, windowHeight);
+      canvas.position(DOMManager.domWidth, 0);
     },
 
     draw() {
-      background(255, 255, 255, 255);
-      ellipse(50, 50, 80, 80);
+      
+
     }
   }
 })();
