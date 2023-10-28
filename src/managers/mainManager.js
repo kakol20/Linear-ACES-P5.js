@@ -14,8 +14,7 @@ const MainManager = (function () {
     },
 
     draw() {
-      
-
+      ProcessManager.draw();
     }
   }
 })();

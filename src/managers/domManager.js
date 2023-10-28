@@ -47,7 +47,7 @@ const DOMManager = (function () {
               background(28, 28, 28, 0);
               image(loaded, 0, 0);
 
-              this.state ='loadImage';
+              ProcessManager.changeState('loadImage');
             });
           });
 
@@ -62,7 +62,5 @@ const DOMManager = (function () {
     imageInput: 0,
 
     domWidth: 0,
-
-    state: 'preload'
   }
 })()
