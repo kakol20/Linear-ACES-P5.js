@@ -1,10 +1,6 @@
 const ProcessManager = (function () {
   let state = 'nothing';
 
-  function GetIndex(x, y, w, c) {
-    return (x + y * w) * c;
-  }
-
   const maxFPS = 60;
   const maxTime = (1 / maxFPS) * 1000;
 
@@ -15,6 +11,25 @@ const ProcessManager = (function () {
   let processOrder = [];
 
   const debugStates = true;
+
+  function GetIndex(x, y, w, c) {
+    return (x + y * w) * c;
+  }
+
+  const Timing = (function () {
+    let startTime = 0;
+    return {
+      start() {
+        startTime = new Date();
+      },
+      checkTime() {
+        const elapseTime = (new Date()) - startTime;
+        // if (elapseTime >= maxTime) break;
+        return elapseTime >= maxTime;
+      }
+
+    }
+  })();
 
   return {
     changeState(s) {
@@ -34,8 +49,9 @@ const ProcessManager = (function () {
 
         this.changeState('saveImage');
       } else if (state === 'saveImage') {
+        Timing.start();
+
         loadPixels();
-        const startTime = new Date();
         while (true) {
           const index = GetIndex(x, y, width, 4);
 
@@ -62,8 +78,7 @@ const ProcessManager = (function () {
             break;
           }
 
-          const elapseTime = (new Date()) - startTime;
-          if (elapseTime >= maxTime) break;
+          if (Timing.checkTime()) break;
         }
         DOMManager.updateProgress('Loading', (GetIndex(x, y, width, 4) / GetIndex(width - 1, height - 1, width, 4)) * 100);
 
@@ -75,12 +90,12 @@ const ProcessManager = (function () {
 
         // updatePixels();
       } else if (state === 'processImage') {
-        const startTime = new Date();
+        Timing.start();
 
         loadPixels();
         while (true) {
           const index = processOrder[p].index;
-          
+
           x = processOrder[p].x, y = processOrder[p].y;
 
           // ----- START TEMP -----
@@ -115,8 +130,7 @@ const ProcessManager = (function () {
             break;
           }
 
-          const elapseTime = (new Date()) - startTime;
-          if (elapseTime >= maxTime) break;
+          if (Timing.checkTime()) break;
         }
         updatePixels();
 
@@ -126,7 +140,7 @@ const ProcessManager = (function () {
           p = 0;
         }
       } else if (state === 'restart') {
-        const startTime = new Date();
+        Timing.start();
 
         loadPixels();
         while (true) {
@@ -144,8 +158,7 @@ const ProcessManager = (function () {
             break;
           }
 
-          const elapseTime = (new Date()) - startTime;
-          if (elapseTime >= maxTime) break;
+          if (Timing.checkTime()) break;
         }
         updatePixels();
 
