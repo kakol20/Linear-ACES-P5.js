@@ -17,6 +17,7 @@ const Random = (function () {
     Float(min, max) {
       let out = Number(this.UInt());
       out /= this.Rand_Max;
+      return (max - min) * out;
     }
   }
 })();
