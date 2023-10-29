@@ -121,6 +121,39 @@ const ProcessManager = (function () {
         updatePixels();
 
         DOMManager.updateProgress('Processing', (p / processOrder.length) * 100);
+
+        if (state != 'processImage') {
+          p = 0;
+        }
+      } else if (state === 'restart') {
+        const startTime = new Date();
+
+        loadPixels();
+        while (true) {
+          const index = processOrder[p].index;
+
+          for (let i = 0; i < 4; i++) {
+            const c = constData[index + i];
+            processData[index + i] = c;
+            pixels[index + i] = sRGB.tosRGB(c) * 255;
+          }
+
+          p++;
+          if (p >= processOrder.length) {
+            this.changeState('processImage');
+            break;
+          }
+
+          const elapseTime = (new Date()) - startTime;
+          if (elapseTime >= maxTime) break;
+        }
+        updatePixels();
+
+        DOMManager.updateProgress('Restarting', (p / processOrder.length) * 100);
+
+        if (state != 'restart') {
+          p = 0;
+        }
       }
     }
   }

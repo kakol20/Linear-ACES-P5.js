@@ -4,6 +4,10 @@ const DOMManager = (function () {
   let input;
   let fileImage;
 
+  let restartButton;
+
+  let haveImage = false;
+
   function positionDOM() {
     function queryWidth(w, qw) {
       return w < qw ? qw : w;
@@ -15,14 +19,17 @@ const DOMManager = (function () {
     // ----- PROGRESS -----
     progressSpan.position(5, domHeight);
     domHeight += progressSpan.height + 10;
-
     _width = queryWidth(_width, progressSpan.width + 5);
 
     // ----- IMAGE INPUT -----
     input.position(5, domHeight);
     domHeight += input.height + 5;
-
     _width = queryWidth(_width, input.width + 5);
+
+    // ----- RESTART BUTTON -----
+    restartButton.position(5, domHeight);
+    domHeight += restartButton.height + 5;
+    _width = queryWidth(_width, restartButton.width + 5);
 
     return _width;
   }
@@ -32,6 +39,8 @@ const DOMManager = (function () {
     },
 
     preload() {
+      haveImage = false
+
       // ----- PROGRESS -----
       progressSpan = createSpan("Progress: ");
 
@@ -67,6 +76,8 @@ const DOMManager = (function () {
               image(loaded, 0, 0);
 
               ProcessManager.changeState("loadImage");
+
+              haveImage = true;
             });
           });
 
@@ -74,6 +85,14 @@ const DOMManager = (function () {
         }
       });
       input.id("upload");
+
+      // ----- RESTART BUTTON -----
+      restartButton = createButton("Restart");
+      restartButton.mousePressed(() => {
+        if (haveImage) {
+          ProcessManager.changeState("restart");
+        }
+      });
 
       this.domWidth = positionDOM();
     },
