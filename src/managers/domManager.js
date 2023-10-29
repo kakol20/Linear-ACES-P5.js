@@ -6,6 +6,8 @@ const DOMManager = (function () {
 
   let restartButton;
 
+  let acesCheckbox;
+
   let haveImage = false;
 
   function positionDOM() {
@@ -15,25 +17,38 @@ const DOMManager = (function () {
 
     let domHeight = 5;
     let _width = 5;
-    
+
     // ----- PROGRESS -----
     progressSpan.position(5, domHeight);
     domHeight += progressSpan.height + 10;
-    _width = queryWidth(_width, progressSpan.width + 5);
+    _width = queryWidth(_width, progressSpan.width);
 
     // ----- IMAGE INPUT -----
     input.position(5, domHeight);
     domHeight += input.height + 5;
-    _width = queryWidth(_width, input.width + 5);
+    _width = queryWidth(_width, input.width);
 
     // ----- RESTART BUTTON -----
     restartButton.position(5, domHeight);
-    domHeight += restartButton.height + 5;
-    _width = queryWidth(_width, restartButton.width + 5);
+    domHeight += restartButton.height + 10;
+    _width = queryWidth(_width, restartButton.width);
+
+    // ----- LINEAR ACES TOGGLE -----
+    acesCheckbox.size(_width, AUTO);
+    acesCheckbox.position(5, domHeight);
+    domHeight += acesCheckbox.height + 10;
+    _width = queryWidth(_width, input.width);
+    
+    // console.log(restartButton.width);
 
     return _width;
   }
   return {
+    acesBool: false,
+    updateDOMValues() {
+      this.acesBool = acesCheckbox.checked();
+    },
+
     updateProgress(s, p) {
       progressSpan.html(s + ": " + Math.round(p) + "%");
     },
@@ -85,6 +100,7 @@ const DOMManager = (function () {
         }
       });
       input.id("upload");
+      input.size(AUTO, AUTO);
 
       // ----- RESTART BUTTON -----
       restartButton = createButton("Restart");
@@ -93,6 +109,10 @@ const DOMManager = (function () {
           ProcessManager.changeState("restart");
         }
       });
+
+      // ----- ACES TONEMAP -----
+      acesCheckbox = createCheckbox(" Toggle ACES", true);
+      acesCheckbox.changed(() => { console.log("ACES toggle: " + acesCheckbox.checked()) });
 
       this.domWidth = positionDOM();
     },

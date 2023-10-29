@@ -48,6 +48,8 @@ const ProcessManager = (function () {
         processOrder = [];
 
         this.changeState('saveImage');
+
+        DOMManager.updateDOMValues();
       } else if (state === 'saveImage') {
         Timing.start();
 
@@ -86,6 +88,8 @@ const ProcessManager = (function () {
           x = 0;
           y = 0;
           p = 0;
+
+          DOMManager.updateDOMValues();
         }
 
         // updatePixels();
@@ -98,7 +102,7 @@ const ProcessManager = (function () {
 
           x = processOrder[p].x, y = processOrder[p].y;
 
-          // ----- START TEMP -----
+          // ----- START PROCESS -----
 
           // Copy to local
           let c = [];
@@ -106,23 +110,23 @@ const ProcessManager = (function () {
             c.push(processData[index + i]);
           }
 
-          // Process
+          // ACES Tonemapping
+          if (DOMManager.acesBool) {
+            c = LinearACES.ToneMap(c);
+          }
+
+          // Convert to sRGB
           for (let i = 0; i < 3; i++) {
             c[i] = sRGB.tosRGB(c[i]);
           }
 
-          let bw = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-
-          c = [bw, bw, bw, c[3]];
-
           // Show changes
-
           for (let i = 0; i < 4; i++) {
             processData[index + i] = c[i];
             pixels[index + i] = c[i] * 255;
           }
 
-          // ----- END TEMP -----
+          // ----- END PROCESS -----
 
           p++;
           if (p >= processOrder.length) {
@@ -166,6 +170,7 @@ const ProcessManager = (function () {
 
         if (state != 'restart') {
           p = 0;
+          DOMManager.updateDOMValues();
         }
       }
     }
