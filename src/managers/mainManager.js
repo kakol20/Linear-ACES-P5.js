@@ -1,7 +1,8 @@
 const MainManager = (function () {
-  let canvas;
 
   return {
+    canvas: 0,
+
     preload() {
       DOMManager.preload();
     },
@@ -9,8 +10,8 @@ const MainManager = (function () {
     setup() {
       pixelDensity(1);
 
-      canvas = createCanvas(windowWidth - DOMManager.domWidth, windowHeight);
-      canvas.position(DOMManager.domWidth, 0);
+      this.canvas = createCanvas(windowWidth - DOMManager.domWidth, windowHeight);
+      this.canvas.position(DOMManager.domWidth, 0);
     },
 
     draw() {

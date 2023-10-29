@@ -10,12 +10,12 @@ const DOMManager = (function () {
 
   let haveImage = false;
 
-  function positionDOM() {
+  function positionDOM(startHeight = 5) {
     function queryWidth(w, qw) {
       return w < qw ? qw : w;
     }
 
-    let domHeight = 5;
+    let domHeight = startHeight;
     let _width = 5;
 
     // ----- PROGRESS -----
@@ -38,7 +38,7 @@ const DOMManager = (function () {
     acesCheckbox.position(5, domHeight);
     domHeight += acesCheckbox.height + 10;
     _width = queryWidth(_width, input.width);
-    
+
     // console.log(restartButton.width);
 
     return _width;
@@ -71,17 +71,41 @@ const DOMManager = (function () {
               this.domWidth = positionDOM();
 
               // Resize
-              if (loaded.width > windowWidth - this.domWidth || loaded.height > windowHeight) {
-                let arI = loaded.width / loaded.height;
-                let arW = (windowWidth - this.domWidth) / windowHeight;
+              if (windowWidth > windowHeight) {
+                // landscape orientation
+                this.domWidth = positionDOM();
+                MainManager.canvas.position(DOMManager.domWidth, 0);
 
-                if (arI > arW) {
-                  loaded.resize(windowWidth - this.domWidth, 0);
-                } else if (arI < arW) {
-                  loaded.resize(0, windowHeight);
-                } else {
-                  loaded.resize(windowWidth - this.domWidth, 0);
+                if (loaded.width > windowWidth - this.domWidth || loaded.height > windowHeight) {
+                  let arI = loaded.width / loaded.height;
+                  let arW = (windowWidth - this.domWidth) / windowHeight;
+
+                  if (arI > arW) {
+                    loaded.resize(windowWidth - this.domWidth, 0);
+                  } else if (arI < arW) {
+                    loaded.resize(0, windowHeight);
+                  } else {
+                    loaded.resize(windowWidth - this.domWidth, 0);
+                  }
                 }
+              } else {
+                // potrait orientation
+
+                if (loaded.width > windowWidth || loaded.height > windowHeight) {
+                  let arI = loaded.width / loaded.height;
+                  let arW = (windowWidth) / windowHeight;
+
+                  if (arI > arW) {
+                    loaded.resize(windowWidth, 0);
+                  } else if (arI < arW) {
+                    loaded.resize(0, windowHeight);
+                  } else {
+                    loaded.resize(windowWidth, 0);
+                  }
+                }
+
+                MainManager.canvas.position(0, 0);
+                this.domWidth = positionDOM(loaded.height + 5);
               }
 
               resizeCanvas(loaded.width, loaded.height);
