@@ -12,6 +12,7 @@ body {
 	background-color: rgb(28, 28, 28);
 	color: white;
 	font-family: 'Open Sans';
+	vertical-align: middle;
 }
 
 canvas {
@@ -27,6 +28,7 @@ button {
 	width: auto;
 	height: auto;
 	flex: none;
+	vertical-align: middle;
 }
 
 input:not(#upload) {
@@ -38,6 +40,7 @@ input:not(#upload) {
 	width: auto;
 	height: auto;
 	flex: none;
+	vertical-align: middle;
 }
 
 select {
@@ -49,6 +52,7 @@ select {
 	width: auto;
 	height: auto;
 	flex: none;
+	vertical-align: middle;
 }
 
 button:hover,
@@ -61,6 +65,7 @@ button:focus {
 	width: auto;
 	height: auto;
 	flex: none;
+	vertical-align: middle;
 }
 
 input[type=file]::file-selector-button {
@@ -72,6 +77,7 @@ input[type=file]::file-selector-button {
 	width: auto;
 	height: auto;
 	flex: none;
+	vertical-align: middle;
 }
 
 input[type=file]::file-selector-button:hover,
@@ -84,4 +90,5 @@ input[type=file]::file-selector-button:focus {
 	width: auto;
 	height: auto;
 	flex: none;
+	vertical-align: middle;
 }
