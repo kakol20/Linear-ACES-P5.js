@@ -10,8 +10,8 @@ const MainManager = (function () {
     setup() {
       pixelDensity(1);
 
-      this.canvas = createCanvas(windowWidth - DOMManager.domWidth, windowHeight);
-      this.canvas.position(DOMManager.domWidth, 0);
+      this.canvas = createCanvas(10, 10);
+      this.canvas.position(0, 0);
     },
 
     draw() {

@@ -19,11 +19,13 @@ const DOMManager = (function () {
     let _width = 5;
 
     // ----- PROGRESS -----
+    progressSpan.size(200);
     progressSpan.position(5, domHeight);
     domHeight += progressSpan.height + 10;
     _width = queryWidth(_width, progressSpan.width);
 
     // ----- IMAGE INPUT -----
+    input.size(200);
     input.position(5, domHeight);
     domHeight += input.height + 5;
     _width = queryWidth(_width, input.width);
@@ -34,7 +36,7 @@ const DOMManager = (function () {
     _width = queryWidth(_width, restartButton.width);
 
     // ----- LINEAR ACES TOGGLE -----
-    acesCheckbox.size(_width, AUTO);
+    acesCheckbox.size(_width);
     acesCheckbox.position(5, domHeight);
     domHeight += acesCheckbox.height + 10;
     _width = queryWidth(_width, input.width);
@@ -124,7 +126,6 @@ const DOMManager = (function () {
         }
       });
       input.id("upload");
-      input.size(AUTO, AUTO);
 
       // ----- RESTART BUTTON -----
       restartButton = createButton("Restart");
