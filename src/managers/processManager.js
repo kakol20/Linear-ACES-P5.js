@@ -2,7 +2,7 @@ const ProcessManager = (function () {
   let state = 'nothing';
 
   const maxFPS = 60;
-  const maxTime = (1 / maxFPS) * 1000;
+  const maxTime = 1000 / maxFPS;
 
   let x, y, p;
 
