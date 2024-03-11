@@ -269,7 +269,7 @@ const ProcessManager = (function () {
       Timing.start();
       loadPixels();
       while (true) {
-        const index = GetIndex(x, y);
+        const index = GetIndex(x, y, width, 4);
 
         const newX = x - Math.round(width / 2);
         let newY = y - Math.round(height / 2);
@@ -303,7 +303,7 @@ const ProcessManager = (function () {
     function updateInter() {
       Timing.start();
       while (true) {
-        const index = GetIndex(x, y, 4);
+        const index = GetIndex(x, y, width, 4);
         for (let i = 0; i < 4; i++) {
           interData[index + i] = processData[index + i];
         }
