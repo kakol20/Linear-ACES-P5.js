@@ -150,7 +150,6 @@ const ProcessManager = (function () {
         if (DOMManager.skewRotationBool) {
           SkewRotation.calculateValues();
 
-          ProcessManager.internalState = 0;
           ProcessManager.changeState('skew');
         } else {
           ProcessManager.changeState('end');
@@ -203,7 +202,7 @@ const ProcessManager = (function () {
     }
     updatePixels();
 
-    DOMManager.updateProgress('Processing', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
+    DOMManager.updateProgress('Restarting', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'restart') {
       x = 0;
@@ -220,121 +219,20 @@ const ProcessManager = (function () {
       return ((a % b) + b) % b;
     }
 
-    function movePixels(oldI, newI) {
-      for (let i = 0; i < 4; i++) {
-        const c = interData[newI + i];
-        processData[oldI + i] = c;
-        pixels[oldI + i] = c * 255;
-      }
-    }
-
-    function skewX() {
-      Timing.start();
-
-      loadPixels();
-      while (true) {
-        const index = GetIndex(x, y, width, 4);
-
-        let newX = x - Math.round(width / 2);
-        const newY = y - Math.round(height / 2);
-
-        newX += Math.round(AC * newY);
-        newX += Math.round(width / 2);
-        newX = customMod(newX, width);
-
-        const newIndex = GetIndex(newX, y, width, 4);
-        movePixels(index, newIndex);
-
-        x++;
-        if (x >= width) {
-          x = 0;
-          y++;
-        }
-        if (y >= height) {
-          x = 0;
-          y = 0;
-          this.internalState++;
-          // ProcessManager.changeState('end');
-          break;
-        }
-
-        if (Timing.checkTime()) break;
-      }
-      updatePixels();
-
-      DOMManager.updateProgress('Processing', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
-    }
-
-    function skewY() {
-      Timing.start();
-      loadPixels();
-      while (true) {
-        const index = GetIndex(x, y, width, 4);
-
-        const newX = x - Math.round(width / 2);
-        let newY = y - Math.round(height / 2);
-
-        newY += Math.round(B * newX);
-        newY += Math.round(height / 2);
-        newY = customMod(newY, height);
-
-        const newIndex = GetIndex(x, newY, width, 4);
-        movePixels(index, newIndex);
-
-        y++;
-        if (y >= height) {
-          y = 0;
-          x++;
-        }
-        if (x >= width) {
-          x = 0;
-          y = 0;
-          this.internalState++;
-          break;
-        }
-
-        if (Timing.checkTime()) break;
-      }
-      updatePixels();
-
-      DOMManager.updateProgress('Processing', (GetIndex(y, x, height, 4) / GetImageSize(height, width, 4)) * 100);
-    }
-
-    function updateInter() {
-      Timing.start();
-      while (true) {
-        const index = GetIndex(x, y, width, 4);
-        for (let i = 0; i < 4; i++) {
-          interData[index + i] = processData[index + i];
-        }
-
-        x++;
-        if (x >= width) {
-          x = 0;
-          y++;
-        }
-        if (y >= height) {
-          x = 0;
-          y = 0;
-          this.internalState++;
-          // ProcessManager.changeState('end');
-          break;
-        }
-
-        if (Timing.checkTime()) break;
-      }
-    }
-
     return {
       internalState: 0,
       calculateValues() {
         AC = -1 * Math.tan(DOMManager.skewRotationAngle / 2);
         B = Math.sin(DOMManager.skewRotationAngle);
 
-        // this.internalState = 0;
+        this.internalState = 0;
       },
 
       skew() {
+        let xA = 1;
+        let yA = 0;
+        Timing.start();
+
         // states
         // 0 skew x
         // 1 update interData
@@ -342,24 +240,75 @@ const ProcessManager = (function () {
         // 3 update interData
         // 4 skew X
 
-        switch (this.internalState) {
-          case 1:
-          case 3:
-            updateInter();
-            break;
-          case 0:
-          case 4:
-            skewX();
-            break;
-          case 2:
-            skewY();
-            break;
-          case 5:
-          default:
-            ProcessManager.changeState('end');
+        loadPixels();
+        while (true) {
+          const index = GetIndex(x, y, width, 4);
+
+          // ----- START PROCESS -----
+
+          // Midpoint is calculated as 0, 0
+          let newX = x - width / 2;
+          let newY = y - height / 2;
+
+          // newX = newX + Math.round(xA * AC * newY); // skew X
+          // newY = newY + Math.round(yA * B * newX); // skew Y
+
+          // // Convert back to image coordinates  
+          // newX += width / 2;
+          // newY += height / 2;
+
+          // newX = ((newX % width) + width) % width; // wrap around
+          // newY = ((newY % height) + height) % height; // wrap around
+
+          newX += AC * newY; // first skew
+          newY += B * newX; // second skew
+          newX += AC * newY; // last skew
+
+          // Convert back to image coordinates  
+          newX += width / 2;
+          newY += height / 2;
+
+          newX = Math.round(newX);
+          newY = Math.round(newY);
+
+          if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
+            for (let i = 0; i < 4; i++) {
+              processData[index + i] = 0;
+              pixels[index + i] = 0;
+            }
+          } else {
+            const newIndex = GetIndex(newX, newY, width, 4);
+
+            for (let i = 0; i < 4; i++) {
+              const c = interData[newIndex + i];
+              processData[index + i] = c;
+              pixels[index + i] = c * 255;
+            }
+          }
+
+          // ----- END PROCESS -----
+
+          x++;
+          if (x >= width) {
+            x = 0;
+            y++;
+          }
+          if (y >= height) {
             x = 0;
             y = 0;
+
+            ProcessManager.changeState('end');
+
             break;
+          }
+
+          if (Timing.checkTime()) break;
+        }
+        updatePixels();
+
+        if (state != 'skew') {
+          x = 0;
+          y = 0;
         }
 
       }
