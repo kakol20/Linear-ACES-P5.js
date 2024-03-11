@@ -42,17 +42,17 @@ const DOMManager = (function () {
     acesCheckbox.size(_width);
     acesCheckbox.position(5, domHeight);
     domHeight += acesCheckbox.height + 10;
-    _width = queryWidth(_width, input.width);
+    _width = queryWidth(_width, acesCheckbox.width);
 
     // ----- SKEW ROTATION -----
     skewRotationCheckbox.size(_width);
     skewRotationCheckbox.position(5, domHeight);
     domHeight += skewRotationCheckbox.height + 5;
-    _width = queryWidth(_width, input.width);
+    _width = queryWidth(_width, skewRotationCheckbox.width);
 
     skewRotationInput.position(5, domHeight);
     domHeight += skewRotationInput.height + 10;
-    _width = queryWidth(_width, input.width);
+    _width = queryWidth(_width, skewRotationInput.width);
 
     // console.log(restartButton.width);
 
@@ -60,12 +60,15 @@ const DOMManager = (function () {
   }
   return {
     acesBool: false,
+
     skewRotationBool: false,
     skewRotationAngle: 45,
-    
+
     updateDOMValues() {
       this.acesBool = acesCheckbox.checked();
-      this.skewRotationAngle = skewRotationInput.value();
+
+      this.skewRotationBool = skewRotationCheckbox.checked();
+      this.skewRotationAngle = skewRotationInput.value() * (Math.PI / 180);
     },
 
     updateProgress(s, p) {

@@ -4,7 +4,7 @@ const ProcessManager = (function () {
   const maxFPS = 60;
   const maxTime = 1000 / maxFPS;
 
-  let x, y, p;
+  let x, y;
 
   let constData = [];
   let interData = [];
@@ -129,6 +129,7 @@ const ProcessManager = (function () {
       // Show changes
       for (let i = 0; i < 4; i++) {
         processData[index + i] = c[i];
+        interData[index + i] = c[i];
         pixels[index + i] = c[i] * 255;
       }
 
@@ -146,10 +147,14 @@ const ProcessManager = (function () {
         y++;
       }
       if (y >= height) {
-        x = 0;
-        y = 0;
+        if (DOMManager.skewRotationBool) {
+          SkewRotation.calculateValues();
 
-        ProcessManager.changeState('end');
+          ProcessManager.changeState('skew');
+        } else {
+          ProcessManager.changeState('end');
+        }
+
         break;
       }
 
@@ -160,7 +165,8 @@ const ProcessManager = (function () {
     DOMManager.updateProgress('Processing', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'processImage') {
-      p = 0;
+      x = 0;
+      y = 0;
     }
   }
 
@@ -178,11 +184,6 @@ const ProcessManager = (function () {
         pixels[index + i] = sRGB.tosRGB(c) * 255;
       }
 
-      // p++;
-      // if (p >= processOrder.length) {
-      //   ProcessManager.changeState('processImage');
-      //   break;
-      // }
       x++;
       if (x >= width) {
         x = 0;
@@ -204,10 +205,111 @@ const ProcessManager = (function () {
     DOMManager.updateProgress('Restarting', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'restart') {
-      p = 0;
+      x = 0;
+      y = 0;
       DOMManager.updateDOMValues();
     }
   }
+
+  const SkewRotation = (function () {
+    let AC = 0;
+    let B = 0;
+
+    return {
+      internalState: 0,
+      calculateValues() {
+        AC = -1 * Math.tan(DOMManager.skewRotationAngle / 2);
+        B = Math.sin(DOMManager.skewRotationAngle);
+
+        this.internalState = 0;
+      },
+
+      skew() {
+        let xA = 1;
+        let yA = 0;
+        Timing.start();
+
+        // states
+        // 0 skew x
+        // 1 update interData
+        // 2 skew y
+        // 3 update interData
+        // 4 skew X
+
+        if (this.internalState === 0 || this.internalState === 4) {
+          xA = 1;
+          yA = 0;
+        } else {
+          xA = 0;
+          yA = 1;
+        }
+
+        loadPixels();
+        while (true) {
+          const index = GetIndex(x, y, width, 4);
+
+          // ----- START PROCESS -----
+
+          if (this.internalState === 1 || this.internalState === 3) {
+            for (let i = 0; i < 4; i++) {
+              interData[index + i] = processData[index + i];
+            }
+          } else {
+            // Midpoint is calculated as 0, 0
+            let newX = x - (width / 2);
+            let newY = y - (height / 2);
+
+            newX = newX + Math.round(xA * AC * newY); // skew X
+            newY = newY + Math.round(yA * B * newX); // skew Y
+
+            // Convert back to image coordinates  
+            newX += width / 2;
+            newY += height / 2;
+
+            newX = ((newX % width) + width) % width; // wrap around
+            newY = ((newY % height) + height) % height; // wrap around
+
+            const newIndex = GetIndex(newX, newY, width, 4);
+
+            for (let i = 0; i < 4; i++) {
+              const c = interData[index + i];
+              processData[newIndex + i] = c;
+              pixels[newIndex + i] = c * 255;
+            }
+          }
+
+          // ----- END PROCESS -----
+
+          x++;
+          if (x >= width) {
+            x = 0;
+            y++;
+          }
+          if (y >= height) {
+            x = 0;
+            y = 0;
+
+            if (this.internalState === 4) {
+              ProcessManager.changeState('end');
+            } else {
+              this.internalState++;
+            }
+
+            break;
+          }
+
+          if (Timing.checkTime()) break;
+        }
+        updatePixels();
+
+        if (state != 'skew') {
+          x = 0;
+          y = 0;
+        }
+
+      }
+    }
+  })();
 
   return {
     changeState(s) {
@@ -226,6 +328,9 @@ const ProcessManager = (function () {
           break;
         case 'processImage':
           processImageState();
+          break;
+        case 'skew':
+          SkewRotation.skew();
           break;
         case 'restart':
           restartState();
