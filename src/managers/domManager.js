@@ -160,7 +160,7 @@ const DOMManager = (function () {
       acesCheckbox.changed(() => { console.log("ACES toggle: " + acesCheckbox.checked()) });
 
       // ----- SKEW ROTATION -----
-      skewRotationCheckbox = createCheckbox(" Toggle Skew Rotation", true);
+      skewRotationCheckbox = createCheckbox(" Toggle Rotation", true);
       skewRotationCheckbox.changed(() => {
         console.log("ACES toggle: " + skewRotationCheckbox.checked());
       });
