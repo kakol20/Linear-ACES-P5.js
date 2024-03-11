@@ -8,6 +8,9 @@ const DOMManager = (function () {
 
   let acesCheckbox;
 
+  let skewRotationCheckbox;
+  let skewRotationInput;
+
   let haveImage = false;
 
   function positionDOM(startHeight = 5) {
@@ -39,7 +42,17 @@ const DOMManager = (function () {
     acesCheckbox.size(_width);
     acesCheckbox.position(5, domHeight);
     domHeight += acesCheckbox.height + 10;
-    _width = queryWidth(_width, input.width);
+    _width = queryWidth(_width, acesCheckbox.width);
+
+    // ----- SKEW ROTATION -----
+    skewRotationCheckbox.size(_width);
+    skewRotationCheckbox.position(5, domHeight);
+    domHeight += skewRotationCheckbox.height + 5;
+    _width = queryWidth(_width, skewRotationCheckbox.width);
+
+    skewRotationInput.position(5, domHeight);
+    domHeight += skewRotationInput.height + 10;
+    _width = queryWidth(_width, skewRotationInput.width);
 
     // console.log(restartButton.width);
 
@@ -47,8 +60,15 @@ const DOMManager = (function () {
   }
   return {
     acesBool: false,
+
+    skewRotationBool: false,
+    skewRotationAngle: 45,
+
     updateDOMValues() {
       this.acesBool = acesCheckbox.checked();
+
+      this.skewRotationBool = skewRotationCheckbox.checked();
+      this.skewRotationAngle = skewRotationInput.value() * (Math.PI / 180 * -1);
     },
 
     updateProgress(s, p) {
@@ -138,6 +158,13 @@ const DOMManager = (function () {
       // ----- ACES TONEMAP -----
       acesCheckbox = createCheckbox(" Toggle ACES", true);
       acesCheckbox.changed(() => { console.log("ACES toggle: " + acesCheckbox.checked()) });
+
+      // ----- SKEW ROTATION -----
+      skewRotationCheckbox = createCheckbox(" Toggle Skew Rotation", true);
+      skewRotationCheckbox.changed(() => {
+        console.log("ACES toggle: " + skewRotationCheckbox.checked());
+      });
+      skewRotationInput = createInput(45, "number");
 
       this.domWidth = positionDOM();
     },

@@ -4,16 +4,21 @@ const ProcessManager = (function () {
   const maxFPS = 60;
   const maxTime = 1000 / maxFPS;
 
-  let x, y, p;
+  let x, y;
 
   let constData = [];
+  let interData = [];
   let processData = [];
-  let processOrder = [];
+  // let processOrder = [];
 
   const debugStates = true;
 
   function GetIndex(x, y, w, c) {
     return (x + y * w) * c;
+  }
+
+  function GetImageSize(w, h, c) {
+    return w * h * c;
   }
 
   const Timing = (function () {
@@ -53,7 +58,7 @@ const ProcessManager = (function () {
     while (true) {
       const index = GetIndex(x, y, width, 4);
 
-      processOrder.push({ index: index, x: x, y: y });
+      // processOrder.push({ index: index, x: x, y: y });
 
       for (let i = 0; i < 4; i++) {
         // Normalize to 0-1
@@ -64,6 +69,7 @@ const ProcessManager = (function () {
 
         constData.push(c);
         processData.push(c);
+        interData.push(c);
       }
 
       x++;
@@ -73,12 +79,14 @@ const ProcessManager = (function () {
       }
       if (y >= height) {
         ProcessManager.changeState('processImage');
+        x = 0;
+        y = 0;
         break;
       }
 
       if (Timing.checkTime()) break;
     }
-    DOMManager.updateProgress('Loading', (GetIndex(x, y, width, 4) / GetIndex(width - 1, height - 1, width, 4)) * 100);
+    DOMManager.updateProgress('Loading', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'saveImage') {
       x = 0;
@@ -96,9 +104,9 @@ const ProcessManager = (function () {
 
     loadPixels();
     while (true) {
-      const index = processOrder[p].index;
+      const index = GetIndex(x, y, width, 4);
 
-      x = processOrder[p].x, y = processOrder[p].y;
+      // x = processOrder[p].x, y = processOrder[p].y;
 
       // ----- START PROCESS -----
 
@@ -121,14 +129,32 @@ const ProcessManager = (function () {
       // Show changes
       for (let i = 0; i < 4; i++) {
         processData[index + i] = c[i];
+        interData[index + i] = c[i];
         pixels[index + i] = c[i] * 255;
       }
 
       // ----- END PROCESS -----
 
-      p++;
-      if (p >= processOrder.length) {
-        ProcessManager.changeState('end');
+      // p++;
+      // if (p >= processOrder.length) {
+      //   ProcessManager.changeState('end');
+      //   break;
+      // }
+
+      x++;
+      if (x >= width) {
+        x = 0;
+        y++;
+      }
+      if (y >= height) {
+        if (DOMManager.skewRotationBool) {
+          SkewRotation.calculateValues();
+
+          ProcessManager.changeState('skew');
+        } else {
+          ProcessManager.changeState('end');
+        }
+
         break;
       }
 
@@ -136,10 +162,11 @@ const ProcessManager = (function () {
     }
     updatePixels();
 
-    DOMManager.updateProgress('Processing', (p / processOrder.length) * 100);
+    DOMManager.updateProgress('Processing', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'processImage') {
-      p = 0;
+      x = 0;
+      y = 0;
     }
   }
 
@@ -148,31 +175,142 @@ const ProcessManager = (function () {
 
     loadPixels();
     while (true) {
-      const index = processOrder[p].index;
+      const index = GetIndex(x, y, width, 4);
 
       for (let i = 0; i < 4; i++) {
         const c = constData[index + i];
         processData[index + i] = c;
+        interData[index + i] = c;
         pixels[index + i] = sRGB.tosRGB(c) * 255;
       }
 
-      p++;
-      if (p >= processOrder.length) {
+      x++;
+      if (x >= width) {
+        x = 0;
+        y++;
+      }
+      if (y >= height) {
+        x = 0;
+        y = 0;
+
         ProcessManager.changeState('processImage');
         break;
       }
+
 
       if (Timing.checkTime()) break;
     }
     updatePixels();
 
-    DOMManager.updateProgress('Restarting', (p / processOrder.length) * 100);
+    DOMManager.updateProgress('Restarting', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'restart') {
-      p = 0;
+      x = 0;
+      y = 0;
       DOMManager.updateDOMValues();
     }
   }
+
+  const SkewRotation = (function () {
+    let AC = 0;
+    let B = 0;
+
+    function customMod(a, b) {
+      return ((a % b) + b) % b;
+    }
+
+    return {
+      internalState: 0,
+      calculateValues() {
+        AC = -1 * Math.tan(DOMManager.skewRotationAngle / 2);
+        B = Math.sin(DOMManager.skewRotationAngle);
+
+        this.internalState = 0;
+      },
+
+      skew() {
+        let xA = 1;
+        let yA = 0;
+        Timing.start();
+
+        // states
+        // 0 skew x
+        // 1 update interData
+        // 2 skew y
+        // 3 update interData
+        // 4 skew X
+
+        loadPixels();
+        while (true) {
+          const index = GetIndex(x, y, width, 4);
+
+          // ----- START PROCESS -----
+
+          // Midpoint is calculated as 0, 0
+          let newX = x - (width / 2);
+          let newY = y - (height / 2);
+
+          // newX = newX + Math.round(xA * AC * newY); // skew X
+          // newY = newY + Math.round(yA * B * newX); // skew Y
+
+          // // Convert back to image coordinates  
+          // newX += width / 2;
+          // newY += height / 2;
+
+          // newX = ((newX % width) + width) % width; // wrap around
+          // newY = ((newY % height) + height) % height; // wrap around
+
+          newX += Math.round(AC * newY); // first skew
+          newY += Math.round(B * newX); // second skew
+          newX += Math.round(AC * newY); // last skew
+
+          // Convert back to image coordinates  
+          newX += width / 2;
+          newY += height / 2;
+
+          if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
+            for (let i = 0; i < 4; i++) {
+              processData[index + i] = 0;
+              pixels[index + i] = 0;
+            }
+          } else {
+            const newIndex = GetIndex(newX, newY, width, 4);
+
+            for (let i = 0; i < 4; i++) {
+              const c = interData[newIndex + i];
+              processData[index + i] = c;
+              pixels[index + i] = c * 255;
+            }
+          }
+
+          // ----- END PROCESS -----
+
+          x++;
+          if (x >= width) {
+            x = 0;
+            y++;
+          }
+          if (y >= height) {
+            x = 0;
+            y = 0;
+
+            ProcessManager.changeState('end');
+
+            break;
+          }
+
+          if (Timing.checkTime()) break;
+        }
+        updatePixels();
+
+        if (state != 'skew') {
+          x = 0;
+          y = 0;
+        }
+
+      }
+    }
+  })();
 
   return {
     changeState(s) {
@@ -191,6 +329,9 @@ const ProcessManager = (function () {
           break;
         case 'processImage':
           processImageState();
+          break;
+        case 'skew':
+          SkewRotation.skew();
           break;
         case 'restart':
           restartState();
