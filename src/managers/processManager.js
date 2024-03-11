@@ -7,13 +7,18 @@ const ProcessManager = (function () {
   let x, y, p;
 
   let constData = [];
+  let interData = [];
   let processData = [];
-  let processOrder = [];
+  // let processOrder = [];
 
   const debugStates = true;
 
   function GetIndex(x, y, w, c) {
     return (x + y * w) * c;
+  }
+
+  function GetImageSize(w, h, c) {
+    return w * h * c;
   }
 
   const Timing = (function () {
@@ -53,7 +58,7 @@ const ProcessManager = (function () {
     while (true) {
       const index = GetIndex(x, y, width, 4);
 
-      processOrder.push({ index: index, x: x, y: y });
+      // processOrder.push({ index: index, x: x, y: y });
 
       for (let i = 0; i < 4; i++) {
         // Normalize to 0-1
@@ -64,6 +69,7 @@ const ProcessManager = (function () {
 
         constData.push(c);
         processData.push(c);
+        interData.push(c);
       }
 
       x++;
@@ -73,12 +79,14 @@ const ProcessManager = (function () {
       }
       if (y >= height) {
         ProcessManager.changeState('processImage');
+        x = 0;
+        y = 0;
         break;
       }
 
       if (Timing.checkTime()) break;
     }
-    DOMManager.updateProgress('Loading', (GetIndex(x, y, width, 4) / GetIndex(width - 1, height - 1, width, 4)) * 100);
+    DOMManager.updateProgress('Loading', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'saveImage') {
       x = 0;
@@ -96,9 +104,9 @@ const ProcessManager = (function () {
 
     loadPixels();
     while (true) {
-      const index = processOrder[p].index;
+      const index = GetIndex(x, y, width, 4);
 
-      x = processOrder[p].x, y = processOrder[p].y;
+      // x = processOrder[p].x, y = processOrder[p].y;
 
       // ----- START PROCESS -----
 
@@ -126,8 +134,21 @@ const ProcessManager = (function () {
 
       // ----- END PROCESS -----
 
-      p++;
-      if (p >= processOrder.length) {
+      // p++;
+      // if (p >= processOrder.length) {
+      //   ProcessManager.changeState('end');
+      //   break;
+      // }
+
+      x++;
+      if (x >= width) {
+        x = 0;
+        y++;
+      }
+      if (y >= height) {
+        x = 0;
+        y = 0;
+
         ProcessManager.changeState('end');
         break;
       }
@@ -136,7 +157,7 @@ const ProcessManager = (function () {
     }
     updatePixels();
 
-    DOMManager.updateProgress('Processing', (p / processOrder.length) * 100);
+    DOMManager.updateProgress('Processing', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'processImage') {
       p = 0;
@@ -148,25 +169,39 @@ const ProcessManager = (function () {
 
     loadPixels();
     while (true) {
-      const index = processOrder[p].index;
+      const index = GetIndex(x, y, width, 4);
 
       for (let i = 0; i < 4; i++) {
         const c = constData[index + i];
         processData[index + i] = c;
+        interData[index + i] = c;
         pixels[index + i] = sRGB.tosRGB(c) * 255;
       }
 
-      p++;
-      if (p >= processOrder.length) {
+      // p++;
+      // if (p >= processOrder.length) {
+      //   ProcessManager.changeState('processImage');
+      //   break;
+      // }
+      x++;
+      if (x >= width) {
+        x = 0;
+        y++;
+      }
+      if (y >= height) {
+        x = 0;
+        y = 0;
+
         ProcessManager.changeState('processImage');
         break;
       }
+
 
       if (Timing.checkTime()) break;
     }
     updatePixels();
 
-    DOMManager.updateProgress('Restarting', (p / processOrder.length) * 100);
+    DOMManager.updateProgress('Restarting', (GetIndex(x, y, width, 4) / GetImageSize(width, height, 4)) * 100);
 
     if (state != 'restart') {
       p = 0;
