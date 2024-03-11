@@ -215,6 +215,10 @@ const ProcessManager = (function () {
     let AC = 0;
     let B = 0;
 
+    function customMod(a, b) {
+      return ((a % b) + b) % b;
+    }
+
     return {
       internalState: 0,
       calculateValues() {
@@ -236,45 +240,46 @@ const ProcessManager = (function () {
         // 3 update interData
         // 4 skew X
 
-        if (this.internalState === 0 || this.internalState === 4) {
-          xA = 1;
-          yA = 0;
-        } else {
-          xA = 0;
-          yA = 1;
-        }
-
         loadPixels();
         while (true) {
           const index = GetIndex(x, y, width, 4);
 
           // ----- START PROCESS -----
 
-          if (this.internalState === 1 || this.internalState === 3) {
+          // Midpoint is calculated as 0, 0
+          let newX = x - (width / 2);
+          let newY = y - (height / 2);
+
+          // newX = newX + Math.round(xA * AC * newY); // skew X
+          // newY = newY + Math.round(yA * B * newX); // skew Y
+
+          // // Convert back to image coordinates  
+          // newX += width / 2;
+          // newY += height / 2;
+
+          // newX = ((newX % width) + width) % width; // wrap around
+          // newY = ((newY % height) + height) % height; // wrap around
+
+          newX += Math.round(AC * newY); // first skew
+          newY += Math.round(B * newX); // second skew
+          newX += Math.round(AC * newY); // last skew
+
+          // Convert back to image coordinates  
+          newX += width / 2;
+          newY += height / 2;
+
+          if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
             for (let i = 0; i < 4; i++) {
-              interData[index + i] = processData[index + i];
+              processData[index + i] = 0;
+              pixels[index + i] = 0;
             }
           } else {
-            // Midpoint is calculated as 0, 0
-            let newX = x - (width / 2);
-            let newY = y - (height / 2);
-
-            newX = newX + Math.round(xA * AC * newY); // skew X
-            newY = newY + Math.round(yA * B * newX); // skew Y
-
-            // Convert back to image coordinates  
-            newX += width / 2;
-            newY += height / 2;
-
-            newX = ((newX % width) + width) % width; // wrap around
-            newY = ((newY % height) + height) % height; // wrap around
-
             const newIndex = GetIndex(newX, newY, width, 4);
 
             for (let i = 0; i < 4; i++) {
-              const c = interData[index + i];
-              processData[newIndex + i] = c;
-              pixels[newIndex + i] = c * 255;
+              const c = interData[newIndex + i];
+              processData[index + i] = c;
+              pixels[index + i] = c * 255;
             }
           }
 
@@ -289,11 +294,7 @@ const ProcessManager = (function () {
             x = 0;
             y = 0;
 
-            if (this.internalState === 4) {
-              ProcessManager.changeState('end');
-            } else {
-              this.internalState++;
-            }
+            ProcessManager.changeState('end');
 
             break;
           }
