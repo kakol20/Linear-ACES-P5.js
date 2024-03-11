@@ -247,29 +247,22 @@ const ProcessManager = (function () {
           // ----- START PROCESS -----
 
           // Midpoint is calculated as 0, 0
-          let newX = x - width / 2;
+          let newX = x - width  / 2;
           let newY = y - height / 2;
 
-          // newX = newX + Math.round(xA * AC * newY); // skew X
-          // newY = newY + Math.round(yA * B * newX); // skew Y
-
-          // // Convert back to image coordinates  
-          // newX += width / 2;
-          // newY += height / 2;
-
-          // newX = ((newX % width) + width) % width; // wrap around
-          // newY = ((newY % height) + height) % height; // wrap around
-
-          newX += AC * newY; // first skew
-          newY += B * newX; // second skew
-          newX += AC * newY; // last skew
+          newX -= AC * newY; // first skew
+          newY -=  B * newX; // second skew
+          newX -= AC * newY; // last skew
 
           // Convert back to image coordinates  
-          newX += width / 2;
+          newX += width  / 2;
           newY += height / 2;
 
           newX = Math.round(newX);
           newY = Math.round(newY);
+
+          newX = customMod(newX, width);
+          newY = customMod(newY, height);
 
           if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
             for (let i = 0; i < 4; i++) {

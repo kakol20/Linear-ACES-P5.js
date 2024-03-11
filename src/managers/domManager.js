@@ -68,7 +68,7 @@ const DOMManager = (function () {
       this.acesBool = acesCheckbox.checked();
 
       this.skewRotationBool = skewRotationCheckbox.checked();
-      this.skewRotationAngle = skewRotationInput.value() * (Math.PI / 180 * -1);
+      this.skewRotationAngle = skewRotationInput.value() * (Math.PI / 180);
     },
 
     updateProgress(s, p) {
