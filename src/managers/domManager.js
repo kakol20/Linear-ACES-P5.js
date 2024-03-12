@@ -162,7 +162,7 @@ const DOMManager = (function () {
       // ----- SKEW ROTATION -----
       skewRotationCheckbox = createCheckbox(" Toggle Rotation", true);
       skewRotationCheckbox.changed(() => {
-        console.log("ACES toggle: " + skewRotationCheckbox.checked());
+        console.log("Rotation toggle: " + skewRotationCheckbox.checked());
       });
       skewRotationInput = createInput(45, "number");
 
