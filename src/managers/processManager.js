@@ -1,15 +1,16 @@
 const ProcessManager = (function () {
-  let state = 'nothing';
-
   const maxFPS = 60;
+  Timing.maxTime = 1000 / maxFPS;
 
   const debugStates = true;
 
   return {
-    changeState(s) {
-      state = s;
+    state: 'nothing',
 
-      if (debugStates) console.log('State Change: ' + s);
+    changeState(s) {
+      this.state = s;
+
+      if (debugStates) console.log('State Change', s);
     },
 
     setup() {
@@ -17,7 +18,16 @@ const ProcessManager = (function () {
     },
 
     draw(dt) {
-      switch (state) {
+      switch (this.state) {
+        case 'loadImage':
+          LoadImageState.run();
+          break;
+        case 'processImage':
+          ProcessImageState.run();
+          break;
+        case 'restart':
+          RestartState.run();
+          break;
         default:
           // do nothing
           break;
