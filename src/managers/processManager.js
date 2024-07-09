@@ -25,6 +25,9 @@ const ProcessManager = (function () {
         case 'processImage':
           ProcessImageState.run();
           break;
+        case 'restart':
+          RestartState.run();
+          break;
         default:
           // do nothing
           break;
