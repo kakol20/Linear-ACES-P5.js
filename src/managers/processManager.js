@@ -10,7 +10,7 @@ const ProcessManager = (function () {
     changeState(s) {
       this.state = s;
 
-      if (debugStates) console.log('State Change: ' + s);
+      if (debugStates) console.log('State Change', s);
     },
 
     setup() {

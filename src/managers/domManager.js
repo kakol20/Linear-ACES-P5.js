@@ -51,8 +51,10 @@ const DOMManager = (function () {
     domWidth: 0,
     imageInput: 0,
 
-    updateDOMValues() {
+    grayscaleBool: false,
 
+    updateDOMValues() {
+      this.grayscaleBool = grayChecker.checked();
     },
 
     updateProgress(s, p) {
