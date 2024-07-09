@@ -5,6 +5,10 @@ const DOMManager = (function () {
   let fileImage = 0;
   let haveImage = false;
 
+  let grayChecker = 0;
+
+  let restartButton = 0;
+
   function positionDOM(startHeight = 5) {
     function queryWidth(w, qw) {
       return w < qw ? qw : w;
@@ -26,13 +30,30 @@ const DOMManager = (function () {
     domHeight += input.height + 5;
     _width = queryWidth(_width, input.width);
 
-    console.log(_width, domHeight);
+    // ----- GRAYSCALE CHECKBOX -----
+    grayChecker.size(200, grayChecker.height);
+    grayChecker.position(5, domHeight);
+    domHeight += grayChecker.height + 5;
+    _width = queryWidth(_width, grayChecker.width);
+
+    // ----- RESTART BUTTON -----
+    // console.log(restartButton);
+    // restartButton.size(200, restartButton.height);
+    restartButton.position(5, domHeight);
+    domHeight += restartButton.height + 5;
+    _width = queryWidth(_width, restartButton.width);
+
+    // console.log(_width, domHeight);
 
     return _width;
   }
   return {
     domWidth: 0,
     imageInput: 0,
+
+    updateDOMValues() {
+
+    },
 
     updateProgress(s, p) {
       progressSpan.html(s + ": " + Math.round(p) + "%");
@@ -99,7 +120,7 @@ const DOMManager = (function () {
                 ProcessManager.changeState('loadImage');
                 haveImage = true;
 
-                console.log('Loaded Image', loaded);
+                // console.log('Loaded Image', loaded);
               }
             });
           });
@@ -108,11 +129,19 @@ const DOMManager = (function () {
       });
       input.id('upload');
 
-      this.domWidth = positionDOM();
+      // ----- GRAYSCALE CHECKBOX -----
+      grayChecker = createCheckbox(' Toggle Grayscale', false);
+      grayChecker.changed(() => { console.log('Grayscale toggle', grayChecker.checked()); });
+
+
+      // ----- RESTART BUTTON -----
+      restartButton = createButton('Restart');
+      restartButton.mousePressed(() => { if (haveImage) ProcessManager.changeState('restart'); });
+
     },
 
     setup() {
-
+      this.domWidth = positionDOM();
     }
   }
 })()
