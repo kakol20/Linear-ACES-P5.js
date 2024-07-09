@@ -66,67 +66,64 @@ const DOMManager = (function () {
 
       // ----- IMAGE INPUT -----
       haveImage = false;
-      input = createFileInput((f) => {
-        if (f.type === 'image') {
-          fileImage = createImg(f.data, '', 'anonymous', () => {
-            const selectedFile = document.getElementById('upload');
-            const imageFile = selectedFile.files[0];
-            let imageURL = URL.createObjectURL(imageFile);
+      input = createFileInput((file) => {
+        haveImage = false;
+        if (file.type === 'image') {
+          this.imageInput = createImg(file.data, 'Alt text', 'anonymous', () => {
+            let g = createGraphics(this.imageInput.elt.width, this.imageInput.elt.height);
+            g.image(this.imageInput, 0, 0);
+            this.imageInput.remove();
+            this.imageInput = g.get(0, 0, g.width, g.height);
 
-            loadImage(imageURL, (loaded) => {
-              this.domWidth = positionDOM();
+            this.domWidth = positionDOM();
 
-              // Resize
-              if (windowWidth > windowHeight) {
-                // landscape orientation
-                this.domWidth = positionDOM();
-                MainManager.canvas.position(this.domWidth, 0);
+            if (windowWidth > windowHeight) {
+              // landscape orientation
+              if (this.imageInput.width > windowWidth - this.domWidth - 10 || this.imageInput.height > windowHeight) {
+                const arI = this.imageInput.width / this.imageInput.height;
+                const arW = (windowWidth - this.domWidth - 10) / windowHeight;
 
-                if (loaded.width > windowWidth - this.domWidth || loaded.height > windowHeight) {
-                  let arI = loaded.width / loaded.height;
-                  let arW = (windowWidth - this.domWidth) / windowHeight;
-
-                  if (arI > arW) {
-                    loaded.resize((windowWidth - this.domWidth) * pixelDensity(), 0);
-                  } else if (arI < arW) {
-                    loaded.resize(0, windowHeight * pixelDensity());
-                  } else {
-                    loaded.resize((windowWidth - this.domWidth) * pixelDensity(), 0);
-                  }
+                if (arI < arW) {
+                  this.imageInput.resize(0, windowHeight * pixelDensity());
                 } else {
-                  // potrait orientation
-
-                  if (loaded.width > windowWidth || loaded.height > windowHeight) {
-                    let arI = loaded.width / loaded.height;
-                    let arW = (windowWidth) / windowHeight;
-
-                    if (arI > arW) {
-                      loaded.resize(windowWidth * pixelDensity(), 0);
-                    } else if (arI < arW) {
-                      loaded.resize(0, windowHeight * pixelDensity());
-                    } else {
-                      loaded.resize(windowWidth * pixelDensity(), 0);
-                    }
-                  }
-
-                  MainManager.canvas.position(0, 0);
-                  this.domWidth = positionDOM((loaded.height / pixelDensity()) + 5);
+                  this.imageInput.resize((windowWidth - this.domWidth - 10) * pixelDensity(), 0);
                 }
-
-                resizeCanvas(loaded.width / pixelDensity(), loaded.height / pixelDensity());
-                this.imageInput = loaded;
-
-                background(28, 28, 28, 0);
-                image(loaded, 0, 0, loaded.width / pixelDensity(), loaded.height / pixelDensity());
-
-                ProcessManager.changeState('loadImage');
-                haveImage = true;
-
-                // console.log('Loaded Image', loaded);
+              } else {
+                this.imageInput.resize(this.imageInput.width * pixelDensity(), this.imageInput.height * pixelDensity());
               }
-            });
+
+              MainManager.canvas.position(this.domWidth + 10, 0);
+              // this.domWidth = positionDOM((this.imageInput.height / pixelDensity()) + 5);
+            } else {
+              // portrait orientation
+              if (this.imageInput.width > windowWidth || this.imageInput.height > windowHeight) {
+                const arI = this.imageInput.width / this.imageInput.height;
+                const arW = windowWidth / windowHeight;
+
+                if (arI < arW) {
+                  this.imageInput.resize(0, windowHeight * pixelDensity());
+                } else {
+                  this.imageInput.resize(windowWidth * pixelDensity(), 0);
+                }
+              } else {
+                this.imageInput.resize(this.imageInput.width * pixelDensity(), this.imageInput.height * pixelDensity());
+              }
+
+              MainManager.canvas.position(0, 0);
+              this.domWidth = positionDOM((this.imageInput.height / pixelDensity()) + 5);
+            }
+
+            resizeCanvas(this.imageInput.width / pixelDensity(), this.imageInput.height / pixelDensity());
+
+            background(28, 28, 28, 0);
+            image(this.imageInput, 0, 0, width, height);
+
+            ProcessManager.changeState('loadImage');
+            haveImage = true;
           });
-          fileImage.hide();
+          this.imageInput.hide();
+        } else {
+          this.imageInput = null;
         }
       });
       input.id('upload');
@@ -139,7 +136,6 @@ const DOMManager = (function () {
       // ----- RESTART BUTTON -----
       restartButton = createButton('Restart');
       restartButton.mousePressed(() => { if (haveImage) ProcessManager.changeState('restart'); });
-
     },
 
     setup() {
