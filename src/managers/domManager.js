@@ -62,37 +62,42 @@ const DOMManager = (function () {
     },
 
     preload() {
-      progressSpan = createSpan('Progress:');
+      progressSpan = createSpan('Progress');
 
       // ----- IMAGE INPUT -----
       haveImage = false;
+      // https://editor.p5js.org/creativecoding/sketches/-Ut0EeXZj
       input = createFileInput((file) => {
         haveImage = false;
         if (file.type === 'image') {
           this.imageInput = createImg(file.data, 'Alt text', 'anonymous', () => {
+            // ----- LOAD IMAGE -----
+            this.imageInput.hide();
             let g = createGraphics(this.imageInput.elt.width, this.imageInput.elt.height);
             g.image(this.imageInput, 0, 0);
             this.imageInput.remove();
             this.imageInput = g.get(0, 0, g.width, g.height);
 
+            // ----- RESIZE IMAGE -----
             this.domWidth = positionDOM();
-
             if (windowWidth > windowHeight) {
               // landscape orientation
-              if (this.imageInput.width > windowWidth - this.domWidth - 10 || this.imageInput.height > windowHeight) {
+              if (this.imageInput.width > windowWidth - this.domWidth || this.imageInput.height > windowHeight) {
                 const arI = this.imageInput.width / this.imageInput.height;
-                const arW = (windowWidth - this.domWidth - 10) / windowHeight;
+                const arW = (windowWidth - this.domWidth) / windowHeight;
 
-                if (arI < arW) {
+                if (arI > arW) {
+                  this.imageInput.resize((windowWidth - this.domWidth) * pixelDensity(), 0);
+                } else if (arI < arW) {
                   this.imageInput.resize(0, windowHeight * pixelDensity());
                 } else {
-                  this.imageInput.resize((windowWidth - this.domWidth - 10) * pixelDensity(), 0);
+                  this.imageInput.resize((windowWidth - this.domWidth) * pixelDensity(), 0);
                 }
               } else {
                 this.imageInput.resize(this.imageInput.width * pixelDensity(), this.imageInput.height * pixelDensity());
               }
 
-              MainManager.canvas.position(this.domWidth + 10, 0);
+              MainManager.canvas.position(this.domWidth, 0);
               // this.domWidth = positionDOM((this.imageInput.height / pixelDensity()) + 5);
             } else {
               // portrait orientation
@@ -100,7 +105,9 @@ const DOMManager = (function () {
                 const arI = this.imageInput.width / this.imageInput.height;
                 const arW = windowWidth / windowHeight;
 
-                if (arI < arW) {
+                if (arI > arW) {
+                  this.imageInput.resize(windowWidth * pixelDensity(), 0);
+                } else if (arI < arW) {
                   this.imageInput.resize(0, windowHeight * pixelDensity());
                 } else {
                   this.imageInput.resize(windowWidth * pixelDensity(), 0);

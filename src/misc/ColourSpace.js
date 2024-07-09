@@ -26,7 +26,7 @@ class sRGB {
     return new sRGB(this.r, this.g, this.b);
   }
 
-  mult(s) {
+  scalar(s) {
     this.r *= s;
     this.g *= s;
     this.b *= s;

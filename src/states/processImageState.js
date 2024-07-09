@@ -19,16 +19,7 @@ const ProcessImageState = (function () {
 
         // ----- MAIN PROCESS -----
 
-        if (DOMManager.grayscaleBool) {
-          // temp for testing
-          // let avg = pixels[index + 0] + pixels[index + 1] + pixels[index + 2];
-          // avg /= 3;
-          // pixels[index + 0] = avg;
-          // pixels[index + 1] = avg;
-          // pixels[index + 2] = avg;
-
-          Grayscale.run(index);
-        }
+        if (DOMManager.grayscaleBool) Grayscale.run(index);
 
         // ----- ITERATE -----
         this.i++;
