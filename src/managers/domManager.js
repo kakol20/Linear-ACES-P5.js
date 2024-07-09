@@ -1,11 +1,118 @@
 const DOMManager = (function () {
-  return {
-    preload() {
+  let progressSpan = 0;
 
+  let input = 0;
+  let fileImage = 0;
+  let haveImage = false;
+
+  function positionDOM(startHeight = 5) {
+    function queryWidth(w, qw) {
+      return w < qw ? qw : w;
+    }
+
+    let domHeight = startHeight;
+    let _width = 5;
+
+    // ----- PROGRESS -----
+    progressSpan.size(200, progressSpan.height);
+    progressSpan.position(5, domHeight);
+    // console.log(progressSpan.height);
+    domHeight += progressSpan.height + 10;
+    _width = queryWidth(_width, progressSpan.width);
+
+    // ----- IMAGE INPUT -----
+    input.size(200, input.height);
+    input.position(5, domHeight);
+    domHeight += input.height + 5;
+    _width = queryWidth(_width, input.width);
+
+    console.log(_width, domHeight);
+
+    return _width;
+  }
+  return {
+    domWidth: 0,
+    imageInput: 0,
+
+    updateProgress(s, p) {
+      progressSpan.html(s + ": " + Math.round(p) + "%");
+    },
+
+    preload() {
+      progressSpan = createSpan('Progress:');
+
+      // ----- IMAGE INPUT -----
+      haveImage = false;
+      input = createFileInput((f) => {
+        if (f.type === 'image') {
+          fileImage = createImg(f.data, '', 'anonymous', () => {
+            const selectedFile = document.getElementById('upload');
+            const imageFile = selectedFile.files[0];
+            let imageURL = URL.createObjectURL(imageFile);
+
+            loadImage(imageURL, (loaded) => {
+              this.domWidth = positionDOM();
+
+              // Resize
+              if (windowWidth > windowHeight) {
+                // landscape orientation
+                this.domWidth = positionDOM();
+                MainManager.canvas.position(this.domWidth, 0);
+
+                if (loaded.width > windowWidth - this.domWidth || loaded.height > windowHeight) {
+                  let arI = loaded.width / loaded.height;
+                  let arW = (windowWidth - this.domWidth) / windowHeight;
+
+                  if (arI > arW) {
+                    loaded.resize((windowWidth - this.domWidth) * pixelDensity(), 0);
+                  } else if (arI < arW) {
+                    loaded.resize(0, windowHeight * pixelDensity());
+                  } else {
+                    loaded.resize((windowWidth - this.domWidth) * pixelDensity(), 0);
+                  }
+                } else {
+                  // potrait orientation
+
+                  if (loaded.width > windowWidth || loaded.height > windowHeight) {
+                    let arI = loaded.width / loaded.height;
+                    let arW = (windowWidth) / windowHeight;
+
+                    if (arI > arW) {
+                      loaded.resize(windowWidth * pixelDensity(), 0);
+                    } else if (arI < arW) {
+                      loaded.resize(0, windowHeight * pixelDensity());
+                    } else {
+                      loaded.resize(windowWidth * pixelDensity(), 0);
+                    }
+                  }
+
+                  MainManager.canvas.position(0, 0);
+                  this.domWidth = positionDOM((loaded.height / pixelDensity()) + 5);
+                }
+
+                resizeCanvas(loaded.width / pixelDensity(), loaded.height / pixelDensity());
+                this.imageInput = loaded;
+
+                background(28, 28, 28, 0);
+                image(loaded, 0, 0, loaded.width / pixelDensity(), loaded.height / pixelDensity());
+
+                ProcessManager.changeState('loadImage');
+                haveImage = true;
+
+                console.log('Loaded Image', loaded);
+              }
+            });
+          });
+          fileImage.hide();
+        }
+      });
+      input.id('upload');
+
+      this.domWidth = positionDOM();
     },
 
     setup() {
-      
+
     }
   }
 })()
